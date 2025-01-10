@@ -4,7 +4,7 @@ from .mappings import  ADDRESS_LOOKUP, COMMAND_LOOKUP,  CHANNEL_LOOKUP, FORMAT_S
 from .logger import logger
 
 
-def decode_frame(frame):
+def decode_frame(frame: bytes) -> dict:
     """
     Decodes a FastNet frame and returns interpreted values.
     
@@ -26,11 +26,13 @@ def decode_frame(frame):
 
         # Validate header checksum
         if calculate_checksum(frame[:4]) != header_checksum:
-            raise ValueError("Header checksum mismatch")
+            logger.warning(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
+            return {"error": "Header checksum mismatch"}
 
         # Validate body checksum
         if calculate_checksum(body) != body_checksum:
-            raise ValueError("Body checksum mismatch")
+            logger.warning(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
+            return {"error": "Body checksum mismatch"}
 
         # Decode the header
         decoded_data = {
@@ -43,32 +45,46 @@ def decode_frame(frame):
         # Decode the body (channel ID + format byte + data bytes)
         index = 0
         while index < len(body):
-            channel_id = body[index]
-            format_byte = body[index + 1]
-            index += 2
+            try:
+                channel_id = body[index]
+                format_byte = body[index + 1]
+                index += 2
 
-            # Determine data length based on format
-            data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
-            if index + data_length > len(body):
-                raise ValueError(f"Incomplete data for channel 0x{channel_id:02X}")
+                # Determine data length based on format
+                data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
+                if index + data_length > len(body):
+                    raise ValueError(f"Incomplete data for channel 0x{channel_id:02X}")
 
-            # Extract data bytes
-            data_bytes = body[index:index + data_length]
-            index += data_length
+                # Extract data bytes
+                data_bytes = body[index:index + data_length]
+                index += data_length
 
-            # Decode the data bytes
-            decoded_value = decode_format_and_data(channel_id, format_byte, data_bytes)
-            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+                # Decode the data bytes
+                decoded_value = decode_format_and_data(channel_id, format_byte, data_bytes)
+                channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
 
-            # Store decoded values
-            decoded_data["values"][channel_name] = decoded_value
+                # Store decoded values
+                decoded_data["values"][channel_name] = decoded_value
+
+            except Exception as body_error:
+                logger.error(f"Error decoding body: {body_error}")
 
         return decoded_data
 
     except Exception as e:
+        logger.error(f"Error decoding frame: {e}")
         return {"error": str(e)}
 
-def decode_ascii_frame(frame):
+
+
+
+
+
+
+
+        
+
+def decode_ascii_frame(frame: bytes) -> dict:
     """
     Decodes an ASCII FastNet frame and returns interpreted values.
     
@@ -84,8 +100,8 @@ def decode_ascii_frame(frame):
         body_size = frame[2]
         command = frame[3]
         header_checksum = frame[4]
-        body_checksum = frame[-1]
         body = frame[5:-1]  # Body starts after header checksum
+        body_checksum = frame[-1]
 
         channel_id = body[0]
         format_byte = body[1]
@@ -93,16 +109,14 @@ def decode_ascii_frame(frame):
 
         channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
 
-        # Decode ASCII data
         try:
             ascii_text = data_bytes.decode("ascii").strip()
             interpreted_value = ascii_text
             raw_value = ascii_text
-        except UnicodeDecodeError:
-            logger.error("decode_ascii_frame: Failed to decode ASCII text.")
-            return None
+        except UnicodeDecodeError as decode_error:
+            logger.error(f"Failed to decode ASCII text: {decode_error}")
+            return {"error": "ASCII decode failed"}
 
-        # Construct the same structure as decode_frame
         decoded_data = {
             "to_address": ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})"),
             "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
@@ -123,7 +137,6 @@ def decode_ascii_frame(frame):
     except Exception as e:
         logger.error(f"Error decoding ASCII frame: {e}")
         return {"error": str(e)}
-
 
 def decode_format_and_data(channel_id, format_byte, data_bytes):
     """

@@ -1,0 +1,17 @@
+# Include README, LICENSE, and other important files
+include README.md
+include LICENSE
+
+# Include all Python source files
+recursive-include pyfastnet *.py
+
+# Include tests directory
+recursive-include tests *.py
+
+# Include any data files, if applicable
+include pyfastnet/data/*
+
+# Exclude unwanted files (e.g., caches, temp files, etc.)
+global-exclude __pycache__/*
+global-exclude *.py[cod]
+global-exclude .DS_Store
