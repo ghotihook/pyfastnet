@@ -9,17 +9,16 @@ Byte string from Fastnet including "ff010a01f541910000420a00000000e2ff050c01ef4e
 
 The decoded values from the frame look like this:
 
-'
-Boatspeed (Knots): 
-channel_id: '0x41', 
-	format_byte: '0x91', 
-	data_bytes: '0000', 
-	divisor: 100, 
-	digits: 2, 
-	format_bits: 1, 
-	raw: 0, 
-	interpreted: 0.0
-'
+- Boatspeed (Knots): 
+- channel_id: '0x41', 
+	- format_byte: '0x91', 
+	- data_bytes: '0000', 
+	- divisor: 100, 
+	- digits: 2, 
+	- format_bits: 1, 
+	- raw: 0, 
+	- interpreted: 0.0
+
 
 
 # Important library calls
@@ -34,12 +33,11 @@ channel_id: '0x41',
 pip3 install pyfastnet
 
 On a raspberry pi this is done from with a virtual env
-python -m venv --system-site-packages ~/python_environment
-source ~/python_environment/bin/activate
-pip3 install pyfastnet
-deactivate
-
-~/python_environment/bin/python3 myapp.py 
+- python -m venv --system-site-packages ~/python_environment
+- source ~/python_environment/bin/activate
+- pip3 install pyfastnet
+- deactivate
+- ~/python_environment/bin/python3 myapp.py 
 
 
 
