@@ -13,9 +13,9 @@ command: Broadcast
 values: {'Boatspeed (Knots)': {'channel_id': '0x41', 'format_byte': '0x91', 'data_bytes': '0000', 'divisor': 100, 'digits': 2, 'format_bits': 1, 'raw': 0, 'interpreted': 0.0}, 'Boatspeed (Raw)': {'channel_id': '0x42', 'format_byte': '0x0A', 'data_bytes': '00000000', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first_raw': 0, 'second_raw': 0}, 'interpreted': {'first': 0.0, 'second': 0.0}}, 'Unknown (0xE2)': None, 'Unknown (0x05)': None, 'Unknown (0x01)': None, 'Apparent Wind Speed (Raw)': {'channel_id': '0x4E', 'format_byte': '0x0A', 'data_bytes': '02750222', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first_raw': 629, 'second_raw': 546}, 'interpreted': {'first': 629.0, 'second': 546.0}}, 'Apparent Wind Angle (Raw)': {'channel_id': '0x52', 'format_byte': '0x0A', 'data_bytes': '1a4f1a4f', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first_raw': 6735, 'second_raw': 6735}, 'interpreted': {'first': 6735.0, 'second': 6735.0}}}
 
 # Important library calls
-- fastnetframebuffer.add_to_buffer(raw_input_data)
-- fastnetframebuffer.get_complete_frames()
-- set_log_level(DEBUG)
+- 'fastnetframebuffer.add_to_buffer(raw_input_data)'
+- 'fastnetframebuffer.get_complete_frames()'
+- 'set_log_level(DEBUG)'
 
 # Companion App
 - [Fastnet to NMEA converter](https://github.com/ghotihook/FN2IP) 
