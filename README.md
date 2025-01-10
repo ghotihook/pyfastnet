@@ -9,7 +9,7 @@ Byte string from Fastnet including "ff010a01f541910000420a00000000e2ff050c01ef4e
 
 The decoded values from the frame look like this:
 
-```
+'
 Boatspeed (Knots): 
 channel_id: '0x41', 
 	format_byte: '0x91', 
@@ -19,7 +19,7 @@ channel_id: '0x41',
 	format_bits: 1, 
 	raw: 0, 
 	interpreted: 0.0
-```
+'
 
 
 # Important library calls
