@@ -12,52 +12,22 @@ from_address: Normal CPU (Wind Board in H2000)
 command: Broadcast  
 - **True Wind Speed (Knots)**:  
   - `channel_id`: `0x55`  
-  - `format_byte`: `0x61`  
-  - `data_bytes`: `0030`  
-  - `divisor`: 10  
-  - `digits`: 3  
-  - `format_bits`: 1  
-  - `raw`: 48  
   - `interpreted`: 4.8  
 
 - **True Wind Speed (m/s)**:  
   - `channel_id`: `0x56`  
-  - `format_byte`: `0x61`  
-  - `data_bytes`: `0018`  
-  - `divisor`: 10  
-  - `digits`: 3  
-  - `format_bits`: 1  
-  - `raw`: 24  
   - `interpreted`: 2.4  
 
 - **True Wind Angle**:  
   - `channel_id`: `0x59`  
-  - `format_byte`: `0x03`  
-  - `data_bytes`: `a86b`  
-  - `divisor`: 1  
-  - `digits`: 1  
-  - `format_bits`: 3  
-  - `raw`: `{segment_code: 84, unsigned_value: 107}`  
   - `interpreted`: 107.0  
 
 - **Velocity Made Good (Knots)**:  
   - `channel_id`: `0x7F`  
-  - `format_byte`: `0x87`  
-  - `data_bytes`: `00bb0001`  
-  - `divisor`: 100  
-  - `digits`: 1  
-  - `format_bits`: 7  
-  - `raw`: 1  
   - `interpreted`: 0.01  
 
 - **True Wind Direction**:  
   - `channel_id`: `0x6D`  
-  - `format_byte`: `0x08`  
-  - `data_bytes`: `cd0d`  
-  - `divisor`: 1  
-  - `digits`: 1  
-  - `format_bits`: 8  
-  - `raw`: `{segment_code: 102, unsigned_value: 269}`  
   - `interpreted`: 269.0  
 
 
