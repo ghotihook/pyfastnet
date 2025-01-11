@@ -37,7 +37,7 @@ command: Broadcast
 - ```set_log_level(DEBUG)```
 
 # Companion App
-- A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fasnet2ip](https://github.com/ghotihook/fastnet2ip) 
+- A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fastnet2ip](https://github.com/ghotihook/fastnet2ip) 
 
 # Installation
 ```pip3 install pyfastnet```

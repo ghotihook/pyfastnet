@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pyfastnet",
-    version="1.0.2",  # Ensure this matches your intended version
+    version="1.0.3",  # Ensure this matches your intended version
     author="Alex Salmon",
     author_email="alex@ivila.net",
     description="A Python library for decoding FastNet protocol data streams.",
