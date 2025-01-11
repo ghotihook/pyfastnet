@@ -2,7 +2,7 @@
 Fastnet is the propriatory protocol used by B&G on some older instruments, tested on Hydra/H2000. It might work on other systems. I developed this for personal use and publishing for general interest only. 
 
 # Purpose
-This library can be fed a stream of fastnet data, it will decode and return structured instrument data for further processing
+This library can be fed a stream of fastnet data, it will decode and return structured instrument data for further processing. Syncronisation, checksum and decoding is handled by the library.
 
 # Example input/output
 Byte string from Fastnet including "ff010a01f541910000420a00000000e2ff050c01ef4e0a02750222520a1a4f1a4fdf"
@@ -32,12 +32,12 @@ The decoded values from the frame look like this:
 # Installation
 pip3 install pyfastnet
 
-On a raspberry pi this is done from with a virtual env
+On a raspberry pi and some other systems this is done from with a virtual env
 - python -m venv --system-site-packages ~/python_environment
 - source ~/python_environment/bin/activate
 - pip3 install pyfastnet
 - deactivate
-- ~/python_environment/bin/python3 myapp.py 
+- ~/python_environment/bin/python3 pyfastnet.py -h 
 
 
 
