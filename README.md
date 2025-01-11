@@ -37,7 +37,7 @@ command: Broadcast
 - ```set_log_level(DEBUG)```
 
 # Companion App
-- [fasnet2ip](https://github.com/ghotihook/fastnet2ip) 
+- [fasnet2ip - full implementation from serial connection through to NMEA UDP](https://github.com/ghotihook/fastnet2ip) 
 
 # Installation
 ```pip3 install pyfastnet```
