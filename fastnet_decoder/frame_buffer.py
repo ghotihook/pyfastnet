@@ -98,3 +98,25 @@ class FrameBuffer:
                 logger.debug(f"Unknown command {command_name}. Full Frame:{frame.hex()}")
 
         return complete_frames
+
+    def get_buffer_size(self):
+        """
+        Returns the current size of the buffer.
+        
+        Returns:
+            int: The number of bytes currently in the buffer.
+        """
+        logger.debug(f"Buffer size requested: {len(self.buffer)} bytes.")
+        return len(self.buffer)
+
+
+    def get_buffer_contents(self):
+        """
+        Returns the contents of the buffer as a hex string.
+        
+        Returns:
+            str: The hexadecimal representation of the buffer contents.
+        """
+        hex_contents = self.buffer.hex()
+        logger.debug(f"Buffer contents: {hex_contents}")
+        return hex_contents

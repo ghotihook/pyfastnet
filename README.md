@@ -31,10 +31,14 @@ command: Broadcast
   - `interpreted`: 269.0  
 
 
-# Important library calls
+# Important library calls - function
 - ```fastnetframebuffer.add_to_buffer(raw_input_data)```
 - ```fastnetframebuffer.get_complete_frames()```
+
+# # Important library calls - debug
 - ```set_log_level(DEBUG)```
+- ```fastnetframebuffer.get_buffer_size()```
+- ```fastnetframebuffer.get_buffer_contents()```
 
 # Companion App
 - A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fastnet2ip](https://github.com/ghotihook/fastnet2ip) 
