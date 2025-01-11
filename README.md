@@ -22,9 +22,9 @@ The decoded values from the frame look like this:
 
 
 # Important library calls
-- 'fastnetframebuffer.add_to_buffer(raw_input_data)'
-- 'fastnetframebuffer.get_complete_frames()'
-- 'set_log_level(DEBUG)'
+- ```python fastnetframebuffer.add_to_buffer(raw_input_data)```
+- fastnetframebuffer.get_complete_frames()
+- set_log_level(DEBUG)
 
 # Companion App
 - [Fastnet to NMEA converter](https://github.com/ghotihook/FN2IP) 
