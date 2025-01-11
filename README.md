@@ -7,12 +7,9 @@ This library can be fed a stream of fastnet data, it will decode and return stru
 # Example input/output
 Byte string from Fastnet including "FF051601E555610030566100185903A86B7F8700BB00016D08CD0DCB"
 
-The decoded values from the frame look like this:
 to_address: Entire System  
 from_address: Normal CPU (Wind Board in H2000)  
 command: Broadcast  
-
-**values:**  
 - **True Wind Speed (Knots)**:  
   - `channel_id`: `0x55`  
   - `format_byte`: `0x61`  
