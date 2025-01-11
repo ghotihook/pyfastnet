@@ -37,7 +37,7 @@ command: Broadcast
 - ```set_log_level(DEBUG)```
 
 # Companion App
-- [Fastnet to NMEA converter](https://github.com/ghotihook/FN2IP) 
+- [Fastnet to NMEA converter](https://github.com/ghotihook/fasnnet2ip) 
 
 # Installation
 ```pip3 install pyfastnet```
