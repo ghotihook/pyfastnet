@@ -33,12 +33,13 @@ The decoded values from the frame look like this:
 pip3 install pyfastnet
 
 On a raspberry pi and some other systems this is done from with a virtual env
-- python -m venv --system-site-packages ~/python_environment
-- source ~/python_environment/bin/activate
-- pip3 install pyfastnet
-- deactivate
-- ~/python_environment/bin/python3 pyfastnet.py -h 
 
+```python -m venv --system-site-packages ~/python_environment
+source ~/python_environment/bin/activate
+pip3 install pyfastnet
+deactivate
+~/python_environment/bin/python3 pyfastnet.py -h 
+```
 
 
 ## Acknowledgments / References
