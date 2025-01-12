@@ -95,7 +95,7 @@ class FrameBuffer:
                 if decoded_frame:
                     complete_frames.append(decoded_frame)
             else:
-                logger.debug(f"Unknown command:to:{to_address.hex()} from:{from_address.hex()} body size:{body_size.hex()} command:{command.hex()} Header Checksum:{header_checksum.hex()} Full Frame:{frame.hex()}")
+                logger.debug(f"Unknown command: to:{to_address} from:{from_address} body size:{body_size} command:{command} Header Checksum:{header_checksum} Full Frame:{frame}")
 
         return complete_frames
 
