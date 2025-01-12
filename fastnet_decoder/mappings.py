@@ -128,7 +128,7 @@ CHANNEL_LOOKUP = {
     0x3C: "Rate Motion",
     0x41: "Boatspeed (Knots)",
     0x42: "Boatspeed (Raw)",
-    0x46: "ACP Speed Fixed (Knots)",
+    0x46: "Autopilot Speed Fixed (Knots)",
     0x47: "LatLon",
     0x49: "Heading",
     0x4A: "Heading (Raw)",
