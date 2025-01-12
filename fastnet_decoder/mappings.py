@@ -137,7 +137,7 @@ CHANNEL_LOOKUP = {
     0x4F: "Apparent Wind Speed (m/s)",
     0x51: "Apparent Wind Angle",
     0x52: "Apparent Wind Angle (Raw)",
-    0x53: "Target TWA",
+    0x53: "Autopilot Target TWA",
     0x55: "True Wind Speed (Knots)",
     0x56: "True Wind Speed (m/s)",
     0x57: "Measured Wind Speed (Knots)",
