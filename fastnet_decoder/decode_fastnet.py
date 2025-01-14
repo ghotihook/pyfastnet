@@ -193,7 +193,10 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
             unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
             is_negative = (segment_code & 0b01000000) != 0  # Check if the MSB (bit 6) is set
-            signed_value = unsigned_value if not is_negative else -unsigned_value  # Ensure signed_value is always defined
+            if is_negative:
+                signed_value = -unsigned_value 
+            else:
+                signed_value = unsigned_value
             interpreted_value = signed_value / divisor
             raw_value = {"segment_code": segment_code, "unsigned_value": unsigned_value, "symbol_on_left": is_negative}
 
