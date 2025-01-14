@@ -1,5 +1,5 @@
 import datetime
-from .utils import calculate_checksum, convert_segment_b_to_char
+from .utils import calculate_checksum, convert_segment_b_to_char, convert_segment_a_to_char
 from .mappings import  ADDRESS_LOOKUP, COMMAND_LOOKUP,  CHANNEL_LOOKUP, FORMAT_SIZE_MAP
 from .logger import logger
 
@@ -192,13 +192,13 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
                 return None
             segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
             unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
-            is_negative = (segment_code & 0b01000000) != 0  # Check if the MSB (bit 6) is set
-            if is_negative:
+            layout = convert_segment_a_to_char(segment_code)
+            if layout == "-[data]" or layout == "=[data]":
                 signed_value = -unsigned_value 
             else:
                 signed_value = unsigned_value
             interpreted_value = signed_value / divisor
-            raw_value = {"segment_code": segment_code, "unsigned_value": unsigned_value, "symbol_on_left": is_negative}
+            raw_value = {"segment_code": hex(segment_code), "segment_code_bin": bin(segment_code), "unsigned_value": unsigned_value, "layout": layout}
 
         elif format_bits == 0x04:  # 8-bit segment + 24-bit unsigned value
             if len(data_bytes) != 4:

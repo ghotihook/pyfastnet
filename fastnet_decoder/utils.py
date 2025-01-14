@@ -43,6 +43,22 @@ def convert_segment_b_to_char(segment_byte):
     }
     return segment_mapping.get(segment_byte, "?")
 
+def convert_segment_a_to_char(segment_byte):
+    """
+    Converts a 7-segment display byte into a human-readable character, will add more as we figure them out
+    Args:
+        segment_byte (int): The byte representing the 7-segment display.
+    Returns:
+        str: The corresponding character or '?' if unknown.
+    """
+    segment_mapping = {
+        0x14: "[data]=",
+        0x54: "=[data]",
+        0x10: "[data]-",
+        0x50: "-[data]",
+        0x00: " ",  # Blank
+    }
+    return segment_mapping.get(segment_byte, "?")
 
 
 def parse_format_byte(format_byte):
