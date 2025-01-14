@@ -2,7 +2,7 @@
 
 def calculate_checksum(data):
     """
-    Calculates the checksum for the given data bytes.
+    Calculates the checksum for the given data bytes this one is for Fastnet Checksum
     Args:
         data (bytes): The data bytes to calculate checksum for.
     Returns:
@@ -27,7 +27,7 @@ def calculate_nmea_checksum(sentence):
 
 def convert_segment_b_to_char(segment_byte):
     """
-    Converts a 7-segment display byte into a human-readable character.
+    Converts a 7-segment display byte into a human-readable character, will add more as we figure them out
     Args:
         segment_byte (int): The byte representing the 7-segment display.
     Returns:
@@ -42,6 +42,7 @@ def convert_segment_b_to_char(segment_byte):
         0x00: " ",  # Blank
     }
     return segment_mapping.get(segment_byte, "?")
+
 
 
 def parse_format_byte(format_byte):
