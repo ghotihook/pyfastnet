@@ -51,11 +51,23 @@ def convert_segment_a_to_char(segment_byte):
     Returns:
         str: The corresponding character or '?' if unknown.
     """
+    #segment_mapping = {
+    #    0x14: "[data]=",
+    #    0x54: "=[data]",
+    #    0x10: "[data]-",
+    #    0x50: "-[data]",
+    #    0x46: "=[data]", #Rudder angle top and bottom segments, but lets just call it an =
+    #    0x06: "[data]=", #Rudder angle top and bottom segments, but lets just call it an =
+    #    0x00: " ",  # Blank
+    #}
+
     segment_mapping = {
-        0x14: "[data]=",
-        0x54: "=[data]",
-        0x10: "[data]-",
-        0x50: "-[data]",
+        0x28: "[data]=",
+        0xa8: "=[data]",
+        0x20: "[data]-",
+        0xa0: "-[data]",
+        0x8c: "=[data]", #Rudder angle top and bottom segments, but lets just call it an =
+        0x0c: "[data]=", #Rudder angle top and bottom segments, but lets just call it an =
         0x00: " ",  # Blank
     }
     return segment_mapping.get(segment_byte, "?")

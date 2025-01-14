@@ -186,12 +186,16 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             interpreted_value = unsigned_value / divisor
             raw_value = {"segment_code": segment_code, "unsigned_value": unsigned_value}
 
-        elif format_bits == 0x03:  # 7-bit segment + 9-bit unsigned
+        elif format_bits == 0x03:  
             if len(data_bytes) != 2:
                 logger.warning("Data length mismatch for 7-bit segment + 9-bit unsigned (expected 2 bytes).")
                 return None
-            segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
-            unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
+            # 7-bit segment + 9-bit unsigned - think this is wrong, believe to be  8+8 as per below
+            #segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
+            #unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
+            segment_code = data_bytes[0]
+            unsigned_value = data_bytes[1]
+
             layout = convert_segment_a_to_char(segment_code)
             if layout == "-[data]" or layout == "=[data]":
                 signed_value = -unsigned_value 
