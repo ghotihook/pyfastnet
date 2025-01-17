@@ -9,9 +9,7 @@ DEFAULT_LOG_LEVEL = logging.INFO
 # Avoid duplicate handlers
 if not logger.hasHandlers():
     handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] [%(module)s] %(message)s")
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
