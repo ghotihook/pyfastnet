@@ -261,7 +261,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             interpreted_first_value = first_value / divisor
             interpreted_second_value = second_value / divisor
             interpreted_value = {"first": interpreted_first_value, "second": interpreted_second_value}
-            raw_value = {"first_raw": first_value, "second_raw": second_value}
+            raw_value = {first_value}
 
         else:
             logger.error(f"Unsupported format: 0x{format_bits:02X}.")
