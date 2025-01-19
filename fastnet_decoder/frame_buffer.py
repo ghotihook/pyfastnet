@@ -1,3 +1,4 @@
+import queue
 from .utils import calculate_checksum  # Import checksum function from utils.py
 from .mappings import COMMAND_LOOKUP  # Import your command mappings
 from .decode_fastnet import decode_frame, decode_ascii_frame
@@ -12,11 +13,13 @@ class FrameBuffer:
         """
         Initializes the FrameBuffer.
 
+
         Args:
-            max_buffer_size (int): The maximum size of the buffer to avoid unbounded growth.
+            max_buffer_size (int): The maximum number of bytes to store in the queue.
         """
-        self.buffer = bytearray()  # Holds incoming data
-        self.max_buffer_size = max_buffer_size  # Limit buffer size to prevent memory issues
+        self.buffer = queue.Queue(maxsize=max_buffer_size)  # Thread-safe queue for the buffer
+        self.max_buffer_size = max_buffer_size
+
 
     def add_to_buffer(self, new_data):
         """
@@ -25,84 +28,75 @@ class FrameBuffer:
         Args:
             new_data (bytes): New data from the serial input.
         """
-        self.buffer.extend(new_data)
-        logger.debug(f"Added {len(new_data)} bytes to buffer. Buffer size: {len(self.buffer)} bytes.")
-
-        # Prevent the buffer from growing indefinitely
-        if len(self.buffer) > self.max_buffer_size:
-            logger.warning("Buffer size exceeded maximum limit. Trimming the oldest data.")
-            self.buffer = self.buffer[-self.max_buffer_size:]  # Keep the latest data only
+        try:
+            for byte in new_data:
+                self.buffer.put_nowait(byte)  # Add byte-by-byte to the queue
+            logger.debug(f"Added {len(new_data)} bytes to buffer. Current buffer size: {self.buffer.qsize()} bytes.")
+        except queue.Full:
+            logger.warning("Buffer size exceeded maximum limit. Oldest data will be dropped.")
+            # Drop oldest data to accommodate new data
+            while not self.buffer.empty() and len(new_data) > 0:
+                self.buffer.get_nowait()  # Remove oldest byte
+                new_data = new_data[1:]  # Keep remaining bytes
+            self.add_to_buffer(new_data)  # Retry adding new data
 
     def get_complete_frames(self):
         """
         Extract and return complete frames from the buffer.
         """
-        complete_frames = []
-        while len(self.buffer) >= 6:  # Minimum frame size (5 header + 1 body checksum)
-            to_address = self.buffer[0]
-            from_address = self.buffer[1]
-            body_size = self.buffer[2]
-            command = self.buffer[3]
-            header_checksum = self.buffer[4]
+        complete_frames = bytearray()
+        # Retrieve all available data from the queue
+        while not self.buffer.empty():
+            complete_frames.append(self.buffer.get_nowait())  # Retrieve the data
 
-            # Identify command name from lookup
+        frames = []
+        while len(complete_frames) >= 6:  # Minimum frame size (5 header + 1 body checksum)
+            to_address = complete_frames[0]
+            from_address = complete_frames[1]
+            body_size = complete_frames[2]
+            command = complete_frames[3]
+            header_checksum = complete_frames[4]
+
             command_name = COMMAND_LOOKUP.get(command, f"Unknown (0x{command:02X})")
-            #logger.debug(f"Scanning frame. Command: {command_name}, to_address: 0x{to_address:02X}, from_address: 0x{from_address:02X}")
-
-            # Calculate full frame length
             full_frame_length = 5 + body_size + 1  # Header (5 bytes) + body + body checksum
-            if len(self.buffer) < full_frame_length:
-                logger.debug(f"Incomplete frame: waiting for more bytes (needed {full_frame_length}, got {len(self.buffer)})")
+
+            if len(complete_frames) < full_frame_length:
+                logger.debug(f"Incomplete frame: waiting for more bytes (needed {full_frame_length}, got {len(complete_frames)})")
                 break
 
-            # Extract frame data
-            frame = self.buffer[:full_frame_length]
-            body = self.buffer[5:full_frame_length - 1]
-            body_checksum = self.buffer[full_frame_length - 1]
+            frame = complete_frames[:full_frame_length]
+            body = frame[5:full_frame_length - 1]
+            body_checksum = frame[full_frame_length - 1]
 
-            # Verify header and body checksums
-            if calculate_checksum(self.buffer[:4]) != header_checksum:
-                logger.warning(f"Header checksum mismatch. Dropping first byte.")
-                self.buffer.pop(0)  # Drop first byte and continue
+            # Validate checksums
+            if calculate_checksum(frame[:4]) != header_checksum:
+                logger.warning("Header checksum mismatch. Dropping first byte.")
+                complete_frames.pop(0)  # Drop first byte and continue
                 continue
 
             if calculate_checksum(body) != body_checksum:
-                logger.warning(f"Body checksum mismatch. Dropping first byte.")
-                self.buffer.pop(0)
+                logger.warning("Body checksum mismatch. Dropping first byte.")
+                complete_frames.pop(0)
                 continue
 
-            # Remove frame from buffer after validation
-            self.buffer = self.buffer[full_frame_length:]
+            # Remove processed frame
+            complete_frames = complete_frames[full_frame_length:]
 
-            # Command-based processing
-            if command_name == "Keep Alive":
-                logger.debug(f"Ignoring Keep Alive command.")
-                continue  # Skip adding to complete_frames
-
-            if command_name == "Light Intensity":
-                logger.debug(f"Ignoring Light Intensity command.")
-                continue  # Skip adding to complete_frames
+            if command_name in ["Keep Alive", "Light Intensity"]:
+                logger.debug(f"Ignoring {command_name} command.")
+                continue
 
             if command_name == "LatLon":
-                logger.debug(f"Decoding ASCII LatLon frame.")
-                decoded_frame = decode_ascii_frame(frame)  # Use a specific decoder for LatLon frames
+                decoded_frame = decode_ascii_frame(frame)
                 if decoded_frame:
-                    complete_frames.append(decoded_frame)
-            
+                    frames.append(decoded_frame)
             elif command_name == "Broadcast":
-                logger.debug(f"Processing Broadcast frame.")
-                decoded_frame = decode_frame(frame)  # Standard decoder
+                decoded_frame = decode_frame(frame)
                 if decoded_frame:
-                    complete_frames.append(decoded_frame)
-            else:
-                logger.debug(f"Unknown command: to: 0x{to_address:02X} "
-                             f"from: 0x{from_address:02X} "
-                             f"body size: 0x{body_size:02X} "
-                             f"command: 0x{command:02X} "
-                             f"Header Checksum: 0x{header_checksum:02X} "
-                             f"Full Frame: {frame.hex()}")
+                    frames.append(decoded_frame)
 
-        return complete_frames
+        return frames
+
 
     def get_buffer_size(self):
         """
@@ -111,8 +105,9 @@ class FrameBuffer:
         Returns:
             int: The number of bytes currently in the buffer.
         """
-        logger.debug(f"Buffer size requested: {len(self.buffer)} bytes.")
-        return len(self.buffer)
+        buffer_size = self.buffer.qsize()
+        logger.debug(f"Buffer size requested: {buffer_size} bytes.")
+        return buffer_size
 
 
     def get_buffer_contents(self):
@@ -122,6 +117,16 @@ class FrameBuffer:
         Returns:
             str: The hexadecimal representation of the buffer contents.
         """
-        hex_contents = self.buffer.hex()
+        buffer_copy = bytearray()
+
+        # Retrieve all available bytes from the queue
+        while not self.buffer.empty():
+            buffer_copy.append(self.buffer.get_nowait())
+
+        # Reinsert the data back into the queue to preserve its state
+        for byte in buffer_copy:
+            self.buffer.put_nowait(byte)
+
+        hex_contents = buffer_copy.hex()
         logger.debug(f"Buffer contents: {hex_contents}")
         return hex_contents
