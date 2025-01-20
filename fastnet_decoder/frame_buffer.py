@@ -1,22 +1,97 @@
 from .utils import calculate_checksum  # Import checksum function from utils.py
-from .mappings import COMMAND_LOOKUP  # Import your command mappings
+from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
 from .decode_fastnet import decode_frame, decode_ascii_frame
 from .logger import logger
+from queue import Queue
+
+
+"""
+FrameBuffer Class
+=================
+
+The `FrameBuffer` class is responsible for managing a stream of incoming data, validating and extracting complete 
+frames, and decoding those frames using the FastNet protocol. It is designed to handle real-time data input, making 
+it suitable for scenarios like serial communication with hardware devices.
+
+Core Responsibilities:
+-----------------------
+1. **Buffer Management**:
+   - The class maintains an internal `bytearray` buffer to store incoming raw data.
+   - New data can be added to the buffer using the `add_to_buffer` method.
+   - The buffer automatically trims its size to a configurable maximum (`max_buffer_size`) to avoid unbounded memory usage.
+
+2. **Frame Extraction**:
+   - The `get_complete_frames` method scans the buffer for complete frames based on the FastNet protocol structure:
+     - A frame consists of a 5-byte header, a variable-length body, and a checksum.
+     - Both the header and body checksums are validated before processing the frame.
+   - Frames that are incomplete or fail checksum validation are skipped, and the buffer is adjusted to search for the next valid frame.
+
+3. **Frame Decoding**:
+   - After extracting a valid frame, the method determines the appropriate decoder (ASCII or standard) based on the command type.
+   - Decoded frames are added to an internal queue (`frame_queue`) for further processing.
+
+4. **Command Filtering**:
+   - Certain command types, such as "Keep Alive" or "Light Intensity," can be ignored based on a configurable list of ignored commands 
+     (managed in the `mappings.py` file).
+
+Key Features:
+-------------
+- **Thread-Safe Queue**:
+  The `frame_queue` is implemented using Python's `queue.Queue`, enabling safe concurrent access from multiple threads 
+  (if needed).
+
+- **Error Handling**:
+  - The class is robust against malformed or corrupted data. Frames with invalid checksums are discarded without crashing the application.
+  - Warnings and errors are logged for debugging purposes.
+
+- **Modularity**:
+  - The decoding logic is separated from the frame extraction, adhering to the single-responsibility principle.
+  - The list of ignored commands is managed in `mappings.py`, promoting modularity and ease of configuration.
+
+Typical Workflow:
+-----------------
+1. Raw data (e.g., from a serial port) is fed into the buffer using the `add_to_buffer` method.
+2. The `get_complete_frames` method scans the buffer for valid frames, processes them, and adds decoded frames to the `frame_queue`.
+3. Another part of the application (e.g., a main loop) retrieves and processes frames from the queue for further action (e.g., broadcasting NMEA sentences).
+
+Configuration Parameters:
+-------------------------
+- `max_buffer_size`: Limits the size of the internal buffer. Older data is discarded when the buffer exceeds this size.
+- `max_queue_size`: Specifies the maximum number of frames that can be stored in the `frame_queue`.
+
+Use Cases:
+----------
+The `FrameBuffer` class is ideal for:
+- Real-time data processing systems where incoming data must be validated and decoded before use.
+- Applications where reliability is critical, such as navigation systems or hardware communication protocols.
+
+Example:
+--------
+# Initialize the FrameBuffer
+frame_buffer = FrameBuffer(max_buffer_size=8192, max_queue_size=1000)
+
+# Add raw data to the buffer
+frame_buffer.add_to_buffer(new_data)
+
+# Extract and decode complete frames
+frame_buffer.get_complete_frames()
+
+# Process frames from the queue
+while not frame_buffer.frame_queue.empty():
+    frame = frame_buffer.frame_queue.get()
+    # Process the decoded frame
+"""
+
 
 class FrameBuffer:
     """
     A class that manages an incoming data stream, extracts valid frames,
     and decodes them using the FastNet protocol.
     """
-    def __init__(self, max_buffer_size=8192):
-        """
-        Initializes the FrameBuffer.
-
-        Args:
-            max_buffer_size (int): The maximum size of the buffer to avoid unbounded growth.
-        """
-        self.buffer = bytearray()  # Holds incoming data
-        self.max_buffer_size = max_buffer_size  # Limit buffer size to prevent memory issues
+    def __init__(self, max_buffer_size=8192, max_queue_size=1000):
+        self.buffer = bytearray()
+        self.max_buffer_size = max_buffer_size
+        self.frame_queue = Queue(maxsize=max_queue_size)  # Shared instance for frames
 
     def add_to_buffer(self, new_data):
         """
@@ -25,6 +100,10 @@ class FrameBuffer:
         Args:
             new_data (bytes): New data from the serial input.
         """
+        if not isinstance(new_data, (bytes, bytearray)):
+            logger.error("Invalid data type passed to add_to_buffer. Expected bytes or bytearray.")
+            return
+
         self.buffer.extend(new_data)
         logger.debug(f"Added {len(new_data)} bytes to buffer. Buffer size: {len(self.buffer)} bytes.")
 
@@ -33,11 +112,11 @@ class FrameBuffer:
             logger.warning("Buffer size exceeded maximum limit. Trimming the oldest data.")
             self.buffer = self.buffer[-self.max_buffer_size:]  # Keep the latest data only
 
+  
     def get_complete_frames(self):
         """
-        Extract and return complete frames from the buffer.
+        Extract and validate complete frames from the buffer, then add them to the internal queue.
         """
-        complete_frames = []
         while len(self.buffer) >= 6:  # Minimum frame size (5 header + 1 body checksum)
             to_address = self.buffer[0]
             from_address = self.buffer[1]
@@ -47,7 +126,6 @@ class FrameBuffer:
 
             # Identify command name from lookup
             command_name = COMMAND_LOOKUP.get(command, f"Unknown (0x{command:02X})")
-            #logger.debug(f"Scanning frame. Command: {command_name}, to_address: 0x{to_address:02X}, from_address: 0x{from_address:02X}")
 
             # Calculate full frame length
             full_frame_length = 5 + body_size + 1  # Header (5 bytes) + body + body checksum
@@ -62,48 +140,29 @@ class FrameBuffer:
 
             # Verify header and body checksums
             if calculate_checksum(self.buffer[:4]) != header_checksum:
-                logger.warning(f"Header checksum mismatch. Dropping first byte.")
-                self.buffer.pop(0)  # Drop first byte and continue
+                logger.warning("Header checksum mismatch. Dropping first byte.")
+                self.buffer = self.buffer[1:]
                 continue
 
             if calculate_checksum(body) != body_checksum:
-                logger.warning(f"Body checksum mismatch. Dropping first byte.")
-                self.buffer.pop(0)
+                logger.warning("Body checksum mismatch. Dropping first byte.")
+                self.buffer = self.buffer[1:]
                 continue
 
             # Remove frame from buffer after validation
             self.buffer = self.buffer[full_frame_length:]
 
-            # Command-based processing
-            if command_name == "Keep Alive":
-                logger.debug(f"Ignoring Keep Alive command.")
-                continue  # Skip adding to complete_frames
+            # Skip ignored commands
+            if command_name in IGNORED_COMMANDS:
+                logger.debug(f"Skipping ignored command: {command_name}")
+                continue
 
-            if command_name == "Light Intensity":
-                logger.debug(f"Ignoring Light Intensity command.")
-                continue  # Skip adding to complete_frames
+            # Decode the frame
+            self.decode_and_queue_frame(frame, command_name)
 
-            if command_name == "LatLon":
-                logger.debug(f"Decoding ASCII LatLon frame.")
-                decoded_frame = decode_ascii_frame(frame)  # Use a specific decoder for LatLon frames
-                if decoded_frame:
-                    complete_frames.append(decoded_frame)
-            
-            elif command_name == "Broadcast":
-                logger.debug(f"Processing Broadcast frame.")
-                decoded_frame = decode_frame(frame)  # Standard decoder
-                if decoded_frame:
-                    complete_frames.append(decoded_frame)
-            else:
-                logger.debug(f"Unknown command: to: 0x{to_address:02X} "
-                             f"from: 0x{from_address:02X} "
-                             f"body size: 0x{body_size:02X} "
-                             f"command: 0x{command:02X} "
-                             f"Header Checksum: 0x{header_checksum:02X} "
-                             f"Full Frame: {frame.hex()}")
 
-        return complete_frames
 
+                
     def get_buffer_size(self):
         """
         Returns the current size of the buffer.
@@ -111,7 +170,6 @@ class FrameBuffer:
         Returns:
             int: The number of bytes currently in the buffer.
         """
-        logger.debug(f"Buffer size requested: {len(self.buffer)} bytes.")
         return len(self.buffer)
 
 

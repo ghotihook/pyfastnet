@@ -4,37 +4,44 @@ from .mappings import  ADDRESS_LOOKUP, COMMAND_LOOKUP,  CHANNEL_LOOKUP, FORMAT_S
 from .logger import logger
 
 
+
+
+
+
+
 def decode_frame(frame: bytes) -> dict:
-    """
-    Decodes a FastNet frame and returns interpreted values.
-    
-    Args:
-        frame (bytes): The full frame (header + body).
-        
-    Returns:
-        dict: Decoded data, including addresses, command, and channel values.
-    """
     try:
+        logger.debug(f"Starting frame decoding. Frame length: {len(frame)}, Frame contents: {frame.hex()}")
+
         # Parse the header
         to_address = frame[0]
         from_address = frame[1]
         body_size = frame[2]
         command = frame[3]
         header_checksum = frame[4]
-        body = frame[5:-1]  # Body starts after the header checksum
+        body = frame[5:-1]
         body_checksum = frame[-1]
 
-        # Validate header checksum
+        logger.debug(f"Parsed header: to_address=0x{to_address:02X}, from_address=0x{from_address:02X}, "
+                     f"body_size={body_size}, command=0x{command:02X}, header_checksum=0x{header_checksum:02X}")
+
+        # Validate checksums
         if calculate_checksum(frame[:4]) != header_checksum:
             logger.warning(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Header checksum mismatch"}
 
-        # Validate body checksum
         if calculate_checksum(body) != body_checksum:
             logger.warning(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Body checksum mismatch"}
 
-        # Decode the header
+        # Validate body size explicitly
+        if len(body) < 2 or len(body) != body_size:
+            logger.error(f"Invalid body size: Expected {body_size}, Actual {len(body)}. Frame: {frame.hex()}")
+            return {"error": "Invalid body size"}
+
+        logger.debug("Header and body checksums are valid.")
+
+        # Decode frame...
         decoded_data = {
             "to_address": ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})"),
             "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
@@ -42,38 +49,34 @@ def decode_frame(frame: bytes) -> dict:
             "values": {}
         }
 
-        # Decode the body (channel ID + format byte + data bytes)
+        # Decode body
         index = 0
         while index < len(body):
-            try:
-                channel_id = body[index]
-                format_byte = body[index + 1]
-                index += 2
+            if index + 1 >= len(body):
+                raise ValueError(f"Insufficient bytes to decode channel ID and format byte at index {index}. Remaining length: {len(body) - index}")
 
-                # Determine data length based on format
-                data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
-                if index + data_length > len(body):
-                    raise ValueError(f"Incomplete data for channel 0x{channel_id:02X}")
+            channel_id = body[index]
+            format_byte = body[index + 1]
+            index += 2
 
-                # Extract data bytes
-                data_bytes = body[index:index + data_length]
-                index += data_length
+            data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
+            if index + data_length > len(body):
+                raise ValueError(f"Incomplete data for channel 0x{channel_id:02X}. Expected length: {data_length}, Available: {len(body) - index}")
 
-                # Decode the data bytes
-                decoded_value = decode_format_and_data(channel_id, format_byte, data_bytes)
-                channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+            data_bytes = body[index:index + data_length]
+            index += data_length
 
-                # Store decoded values
-                decoded_data["values"][channel_name] = decoded_value
+            decoded_value = decode_format_and_data(channel_id, format_byte, data_bytes)
+            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
 
-            except Exception as body_error:
-                logger.error(f"Error decoding body: {body_error}")
+            decoded_data["values"][channel_name] = decoded_value
+            logger.debug(f"Decoded value for channel {channel_name}: {decoded_value}")
 
         return decoded_data
 
     except Exception as e:
-        logger.error(f"Error decoding frame: {e}")
-        return {"error": str(e)}
+        logger.error(f"Error during frame decoding: {e}. Frame contents: {frame.hex()}")
+        return None
 
 
 

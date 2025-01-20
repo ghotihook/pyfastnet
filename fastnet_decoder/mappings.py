@@ -101,6 +101,9 @@ ADDRESS_LOOKUP = {
     0x6F: "External Compass (NMEA FFD 6F)"
 }
 
+
+IGNORED_COMMANDS = {"Keep Alive", "Light Intensity"}
+
 COMMAND_LOOKUP = {
     0x01: "Broadcast",
     0x0C: "Keep Alive",
