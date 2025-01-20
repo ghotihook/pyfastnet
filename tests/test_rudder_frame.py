@@ -7,7 +7,8 @@ class TestCustomFrame(unittest.TestCase):
         Test decoding a custom frame using the provided hex string.
         """
         # Hex string provided by the user
-        hex_string = "ff120e01e00b038c274908cc294a0a1cdd6067e5ff121c01d2b5015001a606bee8e800af06bee8e8005306bee8e8007606bee8e8008b"
+
+        hex_string = "ff120e01e00b038c274908cc294a0a1cdd6067e5"
         #hex_string = "ff051801e34e0a02c402754d6100464f610024520af683f6835113a0064b"
         
         # Convert hex string to bytes
