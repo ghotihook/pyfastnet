@@ -161,7 +161,20 @@ class FrameBuffer:
             self.decode_and_queue_frame(frame, command_name)
 
 
+    def decode_and_queue_frame(self, frame, command_name):
+        """Decode a frame and add it to the queue if valid."""
+        decoder = decode_ascii_frame if command_name == "LatLon" else decode_frame
+        decoded_frame = decoder(frame)
+        if decoded_frame:
+            try:
+                self.frame_queue.put_nowait(decoded_frame)
+                logger.debug(f"Added frame to queue: {decoded_frame}")
+            except queue.Full:
+                logger.warning("Frame queue is full. Dropping frame.")
+        else:
+            logger.warning(f"Failed to decode frame: {frame.hex()}")
 
+        
                 
     def get_buffer_size(self):
         """
