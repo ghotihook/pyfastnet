@@ -115,6 +115,8 @@ COMMAND_LOOKUP = {
 CHANNEL_LOOKUP = {
     0x00: "Node Reset",
     0x0B: "Rudder Angle",
+    0x0C: "Linear 5",
+    0X0D: "Linear 6",
     0x1C: "Air Temperature (°F)",
     0x1D: "Air Temperature (°C)",
     0x1E: "Sea Temperature (°F)",
