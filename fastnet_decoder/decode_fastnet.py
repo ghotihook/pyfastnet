@@ -240,12 +240,32 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             if len(data_bytes) != 4:
                 logger.warning("Data length mismatch for 15-bit unsigned (expected 4 bytes).")
                 return None
+            # unused - SegCodeA - 7bit MSB, 8 bit LSB
+            segment_code = data_bytes[1]
             msb = (data_bytes[2] >> 1) & 0b01111111  # 7 bits from third byte
             lsb = data_bytes[3]  # Full 8 bits from fourth byte
             unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
-            interpreted_value = unsigned_value / divisor
-            raw_value = unsigned_value
 
+            layout = convert_segment_a_to_char(segment_code)
+            if layout == "H[data]":
+                signed_value = -unsigned_value 
+            else:
+                signed_value = unsigned_value
+            
+            interpreted_value = signed_value / divisor
+            
+            raw_value = {"segment_code": hex(segment_code), "segment_code_bin": bin(segment_code), "unsigned_value": unsigned_value, "layout": layout}
+
+
+        #elif format_bits == 0x07:  # 15-bit unsigned value with 4-byte input
+        #    if len(data_bytes) != 4:
+        #        logger.warning("Data length mismatch for 15-bit unsigned (expected 4 bytes).")
+        #        return None
+        #    msb = (data_bytes[2] >> 1) & 0b01111111  # 7 bits from third byte
+        #    lsb = data_bytes[3]  # Full 8 bits from fourth byte
+        #    unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
+        #    interpreted_value = unsigned_value / divisor
+        #    raw_value = unsigned_value
         elif format_bits == 0x08:  # 7-bit segment + 9-bit unsigned (0x08 format)
             if len(data_bytes) != 2:
                 logger.warning("decode_format_and_data: Data length mismatch for 0x08 (7-bit segment + 9-bit unsigned).")

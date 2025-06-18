@@ -68,6 +68,8 @@ def convert_segment_a_to_char(segment_byte):
         0xa0: "-[data]",
         0x8c: "=[data]", #Rudder angle top and bottom segments, but lets just call it an =
         0x0c: "[data]=", #Rudder angle top and bottom segments, but lets just call it an =
+        0xf3: "H[data]", #Heel to port
+        0x73: "[data]H", #Heel to stb
         0x00: " ",  # Blank
     }
     return segment_mapping.get(segment_byte, "?")
