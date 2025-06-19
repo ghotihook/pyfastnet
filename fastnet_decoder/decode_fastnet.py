@@ -247,7 +247,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
 
             layout = convert_segment_a_to_char(segment_code)
-            if layout == "H[data]":
+            if layout == "H[data]" or layout == "-[data]":
                 signed_value = -unsigned_value 
             else:
                 signed_value = unsigned_value
@@ -266,6 +266,8 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
         #    unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
         #    interpreted_value = unsigned_value / divisor
         #    raw_value = unsigned_value
+
+
         elif format_bits == 0x08:  # 7-bit segment + 9-bit unsigned (0x08 format)
             if len(data_bytes) != 2:
                 logger.warning("decode_format_and_data: Data length mismatch for 0x08 (7-bit segment + 9-bit unsigned).")
