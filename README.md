@@ -12,7 +12,16 @@ from_address: Normal CPU (Wind Board in H2000)
 command: Broadcast
 values: 
 ```
-{'Apparent Wind Speed (Raw)': {'channel_id': '0x4E', 'format_byte': '0x0A', 'data_bytes': '02c40275', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': 708.0, 'second': 629.0}, 'interpreted': 708.0}, 'Apparent Wind Speed (Knots)': {'channel_id': '0x4D', 'format_byte': '0x61', 'data_bytes': '0046', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 70, 'interpreted': 7.0}, 'Apparent Wind Speed (m/s)': {'channel_id': '0x4F', 'format_byte': '0x61', 'data_bytes': '0024', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 36, 'interpreted': 3.6}, 'Apparent Wind Angle (Raw)': {'channel_id': '0x52', 'format_byte': '0x0A', 'data_bytes': 'f683f683', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': -2429.0, 'second': -2429.0}, 'interpreted': -2429.0}, 'Apparent Wind Angle': {'channel_id': '0x51', 'format_byte': '0x13', 'data_bytes': 'a006', 'divisor': 1, 'digits': 2, 'format_bits': 3, 'raw': {'segment_code': '0xa0', 'segment_code_bin': '0b10100000', 'unsigned_value': 6, 'layout': '-[data]'}, 'interpreted': -6.0}}
+{
+  'Apparent Wind Speed (Raw)': {'channel_id': '0x4E', 'format_byte': '0x0A', 'data_bytes': '02c40275', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': 708.0, 'second': 629.0}, 'interpreted': 708.0}, 
+
+  'Apparent Wind Speed (Knots)': {'channel_id': '0x4D', 'format_byte': '0x61', 'data_bytes': '0046', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 70, 'interpreted': 7.0}, 
+  
+  'Apparent Wind Speed (m/s)': {'channel_id': '0x4F', 'format_byte': '0x61', 'data_bytes': '0024', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 36, 'interpreted': 3.6}, 
+  
+  'Apparent Wind Angle (Raw)': {'channel_id': '0x52', 'format_byte': '0x0A', 'data_bytes': 'f683f683', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': -2429.0, 'second': -2429.0}, 'interpreted': -2429.0}, 
+  
+  'Apparent Wind Angle': {'channel_id': '0x51', 'format_byte': '0x13', 'data_bytes': 'a006', 'divisor': 1, 'digits': 2, 'format_bits': 3, 'raw': {'segment_code': '0xa0', 'segment_code_bin': '0b10100000', 'unsigned_value': 6, 'layout': '-[data]'}, 'interpreted': -6.0}}
 ```
 
 # Example implementation
