@@ -31,11 +31,64 @@ command: Broadcast
   - `interpreted`: 269.0  
 
 
-# Important library calls - function
-- ```fastnetframebuffer.add_to_buffer(raw_input_data)```
-- ```fastnetframebuffer.get_complete_frames()```
+# Example implementation
+```
+#!/usr/bin/env python3
+import serial
+import time
+from pprint import pprint
+from fastnet_decoder import FrameBuffer
 
-# # Important library calls - debug
+def main():
+    fb = FrameBuffer()
+    # open /dev/ttyUSB0 at 28,800 baud, 8E2, 0.1 s timeout
+    ser = serial.Serial(
+        port="/dev/ttyUSB0",
+        baudrate=28800,
+        bytesize=serial.EIGHTBITS,
+        stopbits=serial.STOPBITS_TWO,
+        parity=serial.PARITY_ODD,
+        timeout=0.1
+    )
+
+    try:
+        while True:
+            data = ser.read(256)
+            if not data:
+                time.sleep(0.01)
+                continue
+
+            # 1) feed raw bytes into the frame buffer
+            fb.add_to_buffer(data)
+
+            # 2) extract & decode any complete frames
+            fb.get_complete_frames()
+
+            # 3) peek at the entire queue as a list
+            queue_contents = list(fb.frame_queue.queue)
+            if queue_contents:
+                print("Current decoded frames in queue:")
+                pprint(queue_contents)
+            else:
+                print("Queue is empty.")
+
+            # 4) (optionally) drain the queue for processing
+            while not fb.frame_queue.empty():
+                frame = fb.frame_queue.get()
+                # replace this with whatever you need
+                print("Processing frame:", frame)
+
+    except KeyboardInterrupt:
+        print("Stopping…")
+    finally:
+        ser.close()
+
+if __name__ == "__main__":
+    main()
+```
+
+
+# Important library calls - debug
 - ```set_log_level(DEBUG)```
 - ```fastnetframebuffer.get_buffer_size()```
 - ```fastnetframebuffer.get_buffer_contents()```
