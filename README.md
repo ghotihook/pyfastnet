@@ -4,6 +4,9 @@ Fastnet is the propriatory protocol used by B&G on some older instruments, teste
 # Purpose
 This library can be fed a stream of fastnet data, it will decode and return structured instrument data for further processing. Syncronisation, checksum and decoding is handled by the library.
 
+# Companion App
+- A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fastnet2ip](https://github.com/ghotihook/fastnet2ip) Easy to install on a raspberry pi, core mp135, mac, linux.
+
 # Example input/output
 Byte string from Fastnet including "ff051801e34e0a02c402754d6100464f610024520af683f6835113a0064b"
 
@@ -86,8 +89,7 @@ if __name__ == "__main__":
 - ```fastnetframebuffer.get_buffer_size()```
 - ```fastnetframebuffer.get_buffer_contents()```
 
-# Companion App
-- A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fastnet2ip](https://github.com/ghotihook/fastnet2ip) 
+
 
 # Installation
 ```pip3 install pyfastnet```
