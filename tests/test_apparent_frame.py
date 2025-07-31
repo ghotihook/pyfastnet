@@ -21,6 +21,8 @@ class TestCustomFrame(unittest.TestCase):
         self.assertIn("command", decoded, "Decoded frame should have a command field")
         self.assertIn("values", decoded, "Decoded frame should have a values dictionary")
 
+        # print hex string
+        print(hex_string)
         # Print decoded contents for debugging
         print("Decoded frame contents:")
         for key, value in decoded.items():
