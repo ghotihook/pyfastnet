@@ -27,16 +27,16 @@ def decode_frame(frame: bytes) -> dict:
 
         # Validate checksums
         if calculate_checksum(frame[:4]) != header_checksum:
-            logger.warning(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.info(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Header checksum mismatch"}
 
         if calculate_checksum(body) != body_checksum:
-            logger.warning(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.info(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Body checksum mismatch"}
 
         # Validate body size explicitly
         if len(body) < 2 or len(body) != body_size:
-            logger.error(f"Invalid body size: Expected {body_size}, Actual {len(body)}. Frame: {frame.hex()}")
+            logger.info(f"Invalid body size: Expected {body_size}, Actual {len(body)}. Frame: {frame.hex()}")
             return {"error": "Invalid body size"}
 
         logger.debug("Header and body checksums are valid.")
@@ -290,7 +290,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
 
         else:
-            logger.error(f"Unsupported format: 0x{format_bits:02X}.")
+            logger.warning(f"Unsupported format: 0x{format_bits:02X}.")
             return None
 
         # Return the result
