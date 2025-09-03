@@ -107,6 +107,6 @@ deactivate
 ## Acknowledgments / References
 
 - [trlafleur - Collector of significant background](https://github.com/trlafleur) 
-- [Oppedijk - Background](https://www.oppedijk.com/bandg/fastnet.html)
+- [Oppedijk - Background and patches](https://www.oppedijk.com/bandg/fastnet.html)
 - [timmathews - Significant implementation in Cpp](https://github.com/timmathews/bg-fastnet-driver)
 - Significant help from chatGPT!
