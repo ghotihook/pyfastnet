@@ -106,7 +106,7 @@ ADDRESS_LOOKUP = {
     0x6C: "External Compass (NMEA FFD 6C)",
     0x6D: "External Compass (NMEA FFD 6D)",
     0x6E: "External Compass (NMEA FFD 6E)",
-    0x6F: "External Compass (NMEA FFD 6F)"
+    0x6F: "External Compass (NMEA FFD 6F)",
 
     # Load Cell amplifier
     0x70: "Load cell amplifier (70)",
