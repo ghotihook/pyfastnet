@@ -63,6 +63,14 @@ ADDRESS_LOOKUP = {
     0x45: "Display 20/20 (45)",
     0x46: "Display 20/20 (46)",
     0x47: "Display 20/20 (47)",
+    0x48: "Display 20/20 (48)",
+    0x49: "Display 20/20 (49)",
+    0x4A: "Display 20/20 (4A)",
+    0x4B: "Display 20/20 (4B)",
+    0x4C: "Display 20/20 (4C)",
+    0x4D: "Display 20/20 (4D)",
+    0x4E: "Display 20/20 (4E)",
+    0x4F: "Display 20/20 (4F)",
     
     # Pilot FFD Group
     0x50: "Pilot FFD (50)",
@@ -99,6 +107,42 @@ ADDRESS_LOOKUP = {
     0x6D: "External Compass (NMEA FFD 6D)",
     0x6E: "External Compass (NMEA FFD 6E)",
     0x6F: "External Compass (NMEA FFD 6F)"
+
+    # Load Cell amplifier
+    0x70: "Load cell amplifier (70)",
+    0x71: "Load cell amplifier (71)",
+    0x72: "Load cell amplifier (72)",
+    0x73: "Load cell amplifier (73)",
+    0x74: "Load cell amplifier (74)",
+    0x75: "Load cell amplifier (75)",
+    0x76: "Load cell amplifier (76)",
+    0x77: "Load cell amplifier (77)",
+    0x78: "Load cell amplifier (78)",
+    0x79: "Load cell amplifier (79)",
+    0x7A: "Load cell amplifier (7A)",
+    0x7B: "Load cell amplifier (7B)",
+    0x7C: "Load cell amplifier (7C)",
+    0x7D: "Load cell amplifier (7D)",
+    0x7E: "Load cell amplifier (7E)",
+    0x7F: "Load cell amplifier (7F)",
+
+    # Tank level sensor
+    0x80: "Tank level sensor (80)",
+    0x81: "Tank level sensor (81)",
+    0x82: "Tank level sensor (82)",
+    0x83: "Tank level sensor (83)",
+    0x84: "Tank level sensor (84)",
+    0x85: "Tank level sensor (85)",
+    0x86: "Tank level sensor (86)",
+    0x87: "Tank level sensor (87)",
+    0x88: "Tank level sensor (88)",
+    0x89: "Tank level sensor (89)",
+    0x8A: "Tank level sensor (8A)",
+    0x8B: "Tank level sensor (8B)",
+    0x8C: "Tank level sensor (8C)",
+    0x8D: "Tank level sensor (8D)",
+    0x8E: "Tank level sensor (8E)",
+    0x8F: "Tank level sensor (8F)",
 }
 
 
