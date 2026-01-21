@@ -259,7 +259,20 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
                 logger.warning("Data length mismatch for 16-bit signed integer (expected 2 bytes).")
                 return None
             raw_value = int.from_bytes(data_bytes, byteorder="big", signed=True)
-            interpreted_value = raw_value / divisor
+            
+            # Special handling for Autopilot Mode (channel 0xB5)
+            if channel_id == 0xB5:
+                autopilot_modes = {
+                    20484: "Standby",
+                    20737: "Compass",
+                    20738: "Power",
+                    20740: "Wind",
+                    20755: "NMEA WP",
+                }
+                interpreted_value = autopilot_modes.get(raw_value, f"Unknown ({raw_value})")
+            else:
+                interpreted_value = raw_value / divisor            
+
 
         elif format_bits == 0x02:  # 6-bit segment + 10-bit unsigned value
             if len(data_bytes) != 2:

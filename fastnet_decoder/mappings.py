@@ -235,6 +235,7 @@ CHANNEL_LOOKUP = {
     0x9E: "Pitch Rate (Motion)",
     0xA6: "Autopilot Compass Target",
     0xAF: "Autopilot Off Course",
+    0xB5: "Autopilot Mode",
     0xC1: "Depth (Meters)",
     0xC2: "Depth (Feet)",
     0xC3: "Depth (Fathoms)",
