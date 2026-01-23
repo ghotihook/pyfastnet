@@ -210,7 +210,7 @@ CHANNEL_LOOKUP = {
     0x64: "Average Speed (Knots)",
     0x65: "Average Speed (raw)",
     0x68: "Request for Data",
-    0x69: "Course",
+    0x69: "Course (HDG + Leeway)",
     0x6A: "Act for Data",
     0x6D: "True Wind Direction",
     0x6F: "Next Leg Apparent Wind Angle",
