@@ -140,12 +140,12 @@ class FrameBuffer:
 
             # Verify header and body checksums
             if calculate_checksum(self.buffer[:4]) != header_checksum:
-                logger.warning("Header checksum mismatch. Dropping first byte.")
+                logger.debug("Header checksum mismatch. Dropping first byte.")
                 self.buffer = self.buffer[1:]
                 continue
 
             if calculate_checksum(body) != body_checksum:
-                logger.warning("Body checksum mismatch. Dropping first byte.")
+                logger.debug("Body checksum mismatch. Dropping first byte.")
                 self.buffer = self.buffer[1:]
                 continue
 
@@ -172,7 +172,7 @@ class FrameBuffer:
             except queue.Full:
                 logger.warning("Frame queue is full. Dropping frame.")
         else:
-            logger.warning(f"Failed to decode frame: {frame.hex()}")
+            logger.debug(f"Failed to decode frame: {frame.hex()}")
 
         
                 

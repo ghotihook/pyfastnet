@@ -25,16 +25,16 @@ def decode_frame(frame: bytes) -> dict:
 
         # Validate checksums
         if calculate_checksum(frame[:4]) != header_checksum:
-            logger.info(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.debug(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Header checksum mismatch"}
 
         if calculate_checksum(body) != body_checksum:
-            logger.info(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.debug(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
             return {"error": "Body checksum mismatch"}
 
         # Validate body size explicitly
         if len(body) < 2 or len(body) != body_size:
-            logger.info(
+            logger.debug(
                 f"Invalid body size: Expected {body_size}, Actual {len(body)}. Frame: {frame.hex()}"
             )
             return {"error": "Invalid body size"}
@@ -53,7 +53,7 @@ def decode_frame(frame: bytes) -> dict:
         while index < len(body):
             # Make sure we have at least channel ID + format byte
             if index + 1 >= len(body):
-                logger.info(
+                logger.debug(
                     f"Insufficient bytes to decode channel ID and format byte at index {index}. "
                     f"Remaining length: {len(body) - index}"
                 )
@@ -66,7 +66,7 @@ def decode_frame(frame: bytes) -> dict:
             # Determine how many data bytes this format expects
             data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
             if index + data_length > len(body):
-                logger.info(
+                logger.debug(
                     f"Incomplete data for channel 0x{channel_id:02X}. "
                     f"Expected length: {data_length}, Available: {len(body) - index}"
                 )
@@ -198,7 +198,7 @@ def decode_ascii_frame(frame: bytes) -> dict:
             interpreted_value = ascii_text
             raw_value = ascii_text
         except UnicodeDecodeError as decode_error:
-            logger.error(f"Failed to decode ASCII text: {decode_error}")
+            logger.warning(f"Failed to decode ASCII text: {decode_error}")
             return {"error": "ASCII decode failed"}
 
         decoded_data = {
@@ -250,13 +250,13 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
         digits = digits_map.get(digits_bits, 1)
 
         if len(data_bytes) == 0:
-            logger.warning("decode_format_and_data: Empty data bytes; cannot decode.")
+            logger.debug("decode_format_and_data: Empty data bytes; cannot decode.")
             return None
 
         # Decode based on format bits
         if format_bits == 0x01:  # 16-bit signed integer
             if len(data_bytes) != 2:
-                logger.warning("Data length mismatch for 16-bit signed integer (expected 2 bytes).")
+                logger.debug("Data length mismatch for 16-bit signed integer (expected 2 bytes).")
                 return None
             raw_value = int.from_bytes(data_bytes, byteorder="big", signed=True)
             
@@ -276,7 +276,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x02:  # 6-bit segment + 10-bit unsigned value
             if len(data_bytes) != 2:
-                logger.warning("Data length mismatch for 6-bit segment + 10-bit unsigned (expected 2 bytes).")
+                logger.debug("Data length mismatch for 6-bit segment + 10-bit unsigned (expected 2 bytes).")
                 return None
             segment_code = (data_bytes[0] >> 2) & 0b111111  # 6-bit segment code
             unsigned_value = ((data_bytes[0] & 0b11) << 8) | data_bytes[1]  # 10-bit unsigned value
@@ -285,7 +285,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x03:  
             if len(data_bytes) != 2:
-                logger.warning("Data length mismatch for 7-bit segment + 9-bit unsigned (expected 2 bytes).")
+                logger.debug("Data length mismatch for 7-bit segment + 9-bit unsigned (expected 2 bytes).")
                 return None
             # 7-bit segment + 9-bit unsigned - think this is wrong, believe to be  8+8 as per below
             #segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
@@ -303,7 +303,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x04:  # 8-bit segment + 24-bit unsigned value
             if len(data_bytes) != 4:
-                logger.warning("Data length mismatch for 8-bit + 24-bit unsigned (expected 4 bytes).")
+                logger.debug("Data length mismatch for 8-bit + 24-bit unsigned (expected 4 bytes).")
                 return None
             segment_code = data_bytes[0]  # 8-bit segment code
             unsigned_value = int.from_bytes(data_bytes[1:], byteorder="big", signed=False)  # 24-bit unsigned value
@@ -312,7 +312,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x05:  # Timer format (XX YY ZZ WW)
             if len(data_bytes) != 4:
-                logger.warning("Data length mismatch for timer format (expected 4 bytes).")
+                logger.debug("Data length mismatch for timer format (expected 4 bytes).")
                 return None
             useless = data_bytes[0]  # Useless byte (can be ignored)
             hours = data_bytes[1]  # Hours (may exceed 24)
@@ -323,7 +323,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x06:  # 7-segment display text
             if len(data_bytes) != 4:
-                logger.warning("Data length mismatch for 7-segment display text (expected 4 bytes).")
+                logger.debug("Data length mismatch for 7-segment display text (expected 4 bytes).")
                 return None
             segment_text = "".join(convert_segment_b_to_char(byte) for byte in data_bytes)
             logger.debug(f"Decoded 7-segment text: {segment_text}")
@@ -332,7 +332,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x07:  # 15-bit unsigned value with 4-byte input
             if len(data_bytes) != 4:
-                logger.warning("Data length mismatch for 15-bit unsigned (expected 4 bytes).")
+                logger.debug("Data length mismatch for 15-bit unsigned (expected 4 bytes).")
                 return None
             # unused - SegCodeA - 7bit MSB, 8 bit LSB
             segment_code = data_bytes[1]
@@ -364,7 +364,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x08:  # 7-bit segment + 9-bit unsigned (0x08 format)
             if len(data_bytes) != 2:
-                logger.warning("decode_format_and_data: Data length mismatch for 0x08 (7-bit segment + 9-bit unsigned).")
+                logger.debug("decode_format_and_data: Data length mismatch for 0x08 (7-bit segment + 9-bit unsigned).")
                 return None
             segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
             unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
@@ -373,7 +373,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         elif format_bits == 0x0A:  # 16-bit signed + 16-bit signed
             if len(data_bytes) != 4:
-                logger.warning("Data length mismatch for 16-bit + 16-bit signed (expected 4 bytes).")
+                logger.debug("Data length mismatch for 16-bit + 16-bit signed (expected 4 bytes).")
                 return None
             first_value = int.from_bytes(data_bytes[:2], byteorder="big", signed=True)  # First 16-bit signed integer
             second_value = int.from_bytes(data_bytes[2:], byteorder="big", signed=True)  # Second 16-bit signed integer
@@ -384,7 +384,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
 
         else:
-            logger.warning(f"Unsupported format: 0x{format_bits:02X}.")
+            logger.debug(f"Unsupported format: 0x{format_bits:02X}.")
             return None
 
         # Return the result
