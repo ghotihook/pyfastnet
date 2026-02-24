@@ -336,7 +336,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
                 return None
             # unused - SegCodeA - 7bit MSB, 8 bit LSB
             segment_code = data_bytes[1]
-            msb = (data_bytes[2] >> 1) & 0b01111111  # 7 bits from third byte
+            msb = data_bytes[2] & 0b01111111  # 7 bits from third byte
             lsb = data_bytes[3]  # Full 8 bits from fourth byte
             unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
 
