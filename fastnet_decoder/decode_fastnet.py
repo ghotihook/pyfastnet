@@ -369,7 +369,8 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             segment_code = (data_bytes[0] >> 1) & 0b01111111  # 7-bit segment
             unsigned_value = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]  # 9-bit unsigned value
             interpreted_value = unsigned_value / divisor
-            raw_value = {"segment_code": segment_code, "unsigned_value": unsigned_value}
+            layout = convert_segment_a_to_char(segment_code)
+            raw_value = {"segment_code": segment_code, "layout": layout, "unsigned_value": unsigned_value}
 
         elif format_bits == 0x0A:  # 16-bit signed + 16-bit signed
             if len(data_bytes) != 4:

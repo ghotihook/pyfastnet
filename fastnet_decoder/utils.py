@@ -62,6 +62,7 @@ def convert_segment_a_to_char(segment_byte):
     #}
 
     segment_mapping = {
+        0x66: "°M",  # magnetic bearing indicator (seen on Heading, Course, TWD, Tidal Set)
         0x28: "[data]=",
         0xa8: "=[data]",
         0x20: "[data]-",
