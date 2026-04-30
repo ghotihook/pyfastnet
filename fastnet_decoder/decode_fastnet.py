@@ -341,7 +341,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             unsigned_value = (msb << 8) | lsb  # Combine MSB and LSB into 15-bit value
 
             layout = convert_segment_a_to_char(segment_code)
-            if layout == "H[data]" or layout == "-[data]":
+            if layout == "=[data]" or layout == "-[data]":
                 signed_value = -unsigned_value 
             else:
                 signed_value = unsigned_value
