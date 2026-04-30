@@ -275,6 +275,25 @@ CHANNEL_LOOKUP = {
 }
 
 
+SEGMENT_A = {
+    0x66: "°M",
+    0x28: "[data]=",  0xa8: "=[data]",
+    0x20: "[data]-",  0xa0: "-[data]",
+    0x8c: "=[data]",  0x0c: "[data]=",
+    0xf3: "H[data]",  0x73: "[data]H",
+    0x00: " ",
+}
+
+SEGMENT_B = {
+    0xBE: "O", 0xE8: "F", 0x62: "n",
+    0x72: "o", 0x40: "-", 0x00: " ",
+}
+
+AUTOPILOT_MODES = {
+    20484: "Standby", 20737: "Compass", 20738: "Power",
+    20740: "Wind",    20755: "NMEA WP",
+}
+
 FORMAT_SIZE_MAP = {
     0x00: 4,  # 32 bits (4 bytes)
     0x01: 2,  # 16 bits (2 bytes)

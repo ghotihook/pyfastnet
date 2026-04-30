@@ -34,20 +34,20 @@ class TestDepthFrame(unittest.TestCase):
         self.assertIn("Depth (Fathoms)", self.values)
 
     def test_depth_meters(self):
-        self.assertEqual(self.values["Depth (Meters)"]["interpreted"], 12.0)
+        self.assertEqual(self.values["Depth (Meters)"]["value"], 12.0)
 
     def test_depth_feet(self):
         # Raw value is 395 (> 255), so data_bytes[2] = 0x01 — this is the case
         # that was broken before the msb >> 1 fix. Correct value is 39.5 ft.
-        self.assertEqual(self.values["Depth (Feet)"]["interpreted"], 39.5)
+        self.assertEqual(self.values["Depth (Feet)"]["value"], 39.5)
 
     def test_depth_fathoms(self):
-        self.assertEqual(self.values["Depth (Fathoms)"]["interpreted"], 6.6)
+        self.assertEqual(self.values["Depth (Fathoms)"]["value"], 6.6)
 
     def test_depth_units_are_consistent(self):
-        meters = self.values["Depth (Meters)"]["interpreted"]
-        feet = self.values["Depth (Feet)"]["interpreted"]
-        fathoms = self.values["Depth (Fathoms)"]["interpreted"]
+        meters = self.values["Depth (Meters)"]["value"]
+        feet = self.values["Depth (Feet)"]["value"]
+        fathoms = self.values["Depth (Fathoms)"]["value"]
 
         # Allow 0.2 tolerance: each channel is independently rounded to 0.1 of its
         # own unit by the instrument, so cross-unit comparisons can differ by ~0.15.

@@ -25,56 +25,6 @@ def calculate_nmea_checksum(sentence):
     return f"{checksum:02X}"
 
 
-def convert_segment_b_to_char(segment_byte):
-    """
-    Converts a 7-segment display byte into a human-readable character, will add more as we figure them out
-    Args:
-        segment_byte (int): The byte representing the 7-segment display.
-    Returns:
-        str: The corresponding character or '?' if unknown.
-    """
-    segment_mapping = {
-        0xBE: "O",
-        0xE8: "F",
-        0x62: "n",
-        0x72: "o",
-        0x40: "-",
-        0x00: " ",  # Blank
-    }
-    return segment_mapping.get(segment_byte, "?")
-
-def convert_segment_a_to_char(segment_byte):
-    """
-    Converts a 7-segment display byte into a human-readable character, will add more as we figure them out
-    Args:
-        segment_byte (int): The byte representing the 7-segment display.
-    Returns:
-        str: The corresponding character or '?' if unknown.
-    """
-    #segment_mapping = {
-    #    0x14: "[data]=",
-    #    0x54: "=[data]",
-    #    0x10: "[data]-",
-    #    0x50: "-[data]",
-    #    0x46: "=[data]", #Rudder angle top and bottom segments, but lets just call it an =
-    #    0x06: "[data]=", #Rudder angle top and bottom segments, but lets just call it an =
-    #    0x00: " ",  # Blank
-    #}
-
-    segment_mapping = {
-        0x66: "°M",  # magnetic bearing indicator (seen on Heading, Course, TWD, Tidal Set)
-        0x28: "[data]=",
-        0xa8: "=[data]",
-        0x20: "[data]-",
-        0xa0: "-[data]",
-        0x8c: "=[data]", #Rudder angle top and bottom segments, but lets just call it an =
-        0x0c: "[data]=", #Rudder angle top and bottom segments, but lets just call it an =
-        0xf3: "H[data]", #Heel to port
-        0x73: "[data]H", #Heel to stb
-        0x00: " ",  # Blank
-    }
-    return segment_mapping.get(segment_byte, "?")
-
 
 def parse_format_byte(format_byte):
     """
