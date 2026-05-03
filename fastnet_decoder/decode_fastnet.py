@@ -24,8 +24,6 @@ def _display_from_layout(layout: str, formatted: str) -> str:
 
 def decode_frame(frame: bytes) -> dict:
     try:
-        logger.debug(f"Starting frame decoding. Frame length: {len(frame)}, Frame contents: {frame.hex()}")
-
         to_address      = frame[0]
         from_address    = frame[1]
         body_size       = frame[2]
@@ -34,50 +32,41 @@ def decode_frame(frame: bytes) -> dict:
         body            = frame[5:-1]
         body_checksum   = frame[-1]
 
-        logger.debug(
-            f"Parsed header: to_address=0x{to_address:02X}, from_address=0x{from_address:02X}, "
-            f"body_size={body_size}, command=0x{command:02X}, header_checksum=0x{header_checksum:02X}"
-        )
-
         if calculate_checksum(frame[:4]) != header_checksum:
-            logger.debug(f"Header checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.debug(f"FRAME discard  header-checksum  [{frame.hex()}]")
             return {"error": "Header checksum mismatch"}
 
         if calculate_checksum(body) != body_checksum:
-            logger.debug(f"Body checksum mismatch. Frame dropped: {frame.hex()}")
+            logger.debug(f"FRAME discard  body-checksum  [{frame.hex()}]")
             return {"error": "Body checksum mismatch"}
 
         if len(body) < 2 or len(body) != body_size:
-            logger.debug(f"Invalid body size: Expected {body_size}, Actual {len(body)}. Frame: {frame.hex()}")
+            logger.debug(f"FRAME discard  body-size  expected={body_size}  actual={len(body)}")
             return {"error": "Invalid body size"}
 
-        logger.debug("Header and body checksums are valid.")
-
         decoded_data = {
-            "to_address":  ADDRESS_LOOKUP.get(to_address,   f"Unknown (0x{to_address:02X})"),
+            "to_address":   ADDRESS_LOOKUP.get(to_address,   f"Unknown (0x{to_address:02X})"),
             "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
-            "command":     COMMAND_LOOKUP.get(command,       f"Unknown (0x{command:02X})"),
-            "values":      {}
+            "command":      COMMAND_LOOKUP.get(command,       f"Unknown (0x{command:02X})"),
+            "values":       {}
         }
 
         index = 0
         while index < len(body):
             if index + 1 >= len(body):
-                logger.debug(
-                    f"Insufficient bytes to decode channel ID and format byte at index {index}. "
-                    f"Remaining length: {len(body) - index}"
-                )
+                logger.debug(f"  CH  incomplete header at index={index}")
                 return {"error": "Insufficient bytes for channel header"}
 
-            channel_id  = body[index]
-            format_byte = body[index + 1]
-            index      += 2
+            channel_id   = body[index]
+            format_byte  = body[index + 1]
+            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+            index       += 2
 
             data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
             if index + data_length > len(body):
                 logger.debug(
-                    f"Incomplete data for channel 0x{channel_id:02X}. "
-                    f"Expected length: {data_length}, Available: {len(body) - index}"
+                    f"  CH  0x{channel_id:02X} {channel_name}  "
+                    f"incomplete  need={data_length}B  have={len(body) - index}B"
                 )
                 return {"error": f"Incomplete data for channel 0x{channel_id:02X}"}
 
@@ -85,25 +74,35 @@ def decode_frame(frame: bytes) -> dict:
             index     += data_length
 
             decoded_value = decode_format_and_data(channel_id, format_byte, data_bytes)
-            channel_name  = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
-
             decoded_data["values"][channel_name] = decoded_value
-            logger.debug(f"Decoded value for channel {channel_name}: {decoded_value}")
+
+            if decoded_value:
+                logger.debug(
+                    f"  CH  0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  "
+                    f"value={decoded_value['value']}  "
+                    f"display='{decoded_value['display_text']}'  "
+                    f"layout={decoded_value['layout']}"
+                )
+            else:
+                logger.debug(
+                    f"  CH  0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  (no decode)"
+                )
 
         return decoded_data
 
     except Exception as e:
-        logger.error(f"Unexpected error during frame decoding: {e}. Frame contents: {frame.hex()}")
+        logger.error(f"Unexpected error decoding frame: {e}  [{frame.hex()}]")
         return {"error": "Decoding failure"}
 
 
 def decode_ascii_frame(frame: bytes) -> dict:
     try:
-        to_address      = frame[0]
-        from_address    = frame[1]
-        command         = frame[3]
-        header_checksum = frame[4]
-        body            = frame[5:-1]
+        to_address   = frame[0]
+        from_address = frame[1]
+        command      = frame[3]
+        body         = frame[5:-1]
 
         channel_id   = body[0]
         data_bytes   = body[2:]
@@ -112,13 +111,15 @@ def decode_ascii_frame(frame: bytes) -> dict:
         try:
             ascii_text = data_bytes.decode("ascii").strip()
         except UnicodeDecodeError as e:
-            logger.warning(f"Failed to decode ASCII text: {e}")
+            logger.warning(f"  CH  0x{channel_id:02X} {channel_name}  ASCII decode failed: {e}")
             return {"error": "ASCII decode failed"}
 
+        logger.debug(f"  CH  0x{channel_id:02X} {channel_name}  ascii='{ascii_text}'")
+
         return {
-            "to_address":  ADDRESS_LOOKUP.get(to_address,   f"Unknown (0x{to_address:02X})"),
+            "to_address":   ADDRESS_LOOKUP.get(to_address,   f"Unknown (0x{to_address:02X})"),
             "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
-            "command":     COMMAND_LOOKUP.get(command,       f"Unknown (0x{command:02X})"),
+            "command":      COMMAND_LOOKUP.get(command,       f"Unknown (0x{command:02X})"),
             "values": {
                 channel_name: {
                     "channel_id":   f"0x{channel_id:02X}",
@@ -136,14 +137,11 @@ def decode_ascii_frame(frame: bytes) -> dict:
 
 def decode_format_and_data(channel_id, format_byte, data_bytes):
     try:
-        logger.debug(f"Decoding channel ID: 0x{channel_id:02X}, format byte: 0x{format_byte:02X}, data: {data_bytes.hex()}")
-
         divisor     = _DIVISOR_MAP[(format_byte >> 6) & 0b11]
         dp          = _DP_MAP[divisor]
         format_bits = format_byte & 0b1111
 
         if len(data_bytes) == 0:
-            logger.debug("decode_format_and_data: Empty data bytes; cannot decode.")
             return None
 
         layout = None
@@ -193,7 +191,6 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
                 return None
             value        = None
             display_text = "".join(SEGMENT_B.get(b, "?") for b in data_bytes)
-            logger.debug(f"Decoded 7-segment text: {display_text}")
 
         elif format_bits == 0x07:
             if len(data_bytes) != 4:
@@ -222,7 +219,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             display_text = f"{first:.{dp}f} / {second:.{dp}f}"
 
         else:
-            logger.debug(f"Unsupported format: 0x{format_bits:02X}.")
+            logger.debug(f"       unsupported format 0x{format_bits:02X}")
             return None
 
         return {
