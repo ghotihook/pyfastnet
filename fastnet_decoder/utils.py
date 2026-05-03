@@ -8,7 +8,7 @@ def calculate_checksum(data):
     Returns:
         int: The calculated checksum.
     """
-    return (0x100 - sum(data) % 0x100) & 0xFF
+    return (-sum(data)) & 0xFF
 
 
 def calculate_nmea_checksum(sentence):

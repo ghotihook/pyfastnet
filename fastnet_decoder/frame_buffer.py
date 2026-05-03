@@ -1,3 +1,4 @@
+import logging
 from .utils import calculate_checksum
 from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
 from .decode_fastnet import decode_frame, decode_ascii_frame
@@ -52,29 +53,34 @@ class FrameBuffer:
             frame         = self.buffer[:full_frame_length]
             body          = self.buffer[5:full_frame_length - 1]
             body_checksum = self.buffer[full_frame_length - 1]
-            frame_hex     = bytes(frame).hex()
+
+            debug = logger.isEnabledFor(logging.DEBUG)
 
             if calculate_checksum(self.buffer[:4]) != header_checksum:
-                logger.debug(f"FRAME discard  header-checksum  [{frame_hex}]")
+                if debug:
+                    logger.debug(f"FRAME discard  header-checksum  [{bytes(frame).hex()}]")
                 self.buffer = self.buffer[1:]
                 continue
 
             if calculate_checksum(body) != body_checksum:
-                logger.debug(f"FRAME discard  body-checksum  [{frame_hex}]")
+                if debug:
+                    logger.debug(f"FRAME discard  body-checksum  [{bytes(frame).hex()}]")
                 self.buffer = self.buffer[1:]
                 continue
 
             self.buffer = self.buffer[full_frame_length:]
 
             if command_name in IGNORED_COMMANDS:
-                logger.debug(f"FRAME skip    cmd={command_name}")
+                if debug:
+                    logger.debug(f"FRAME skip    cmd={command_name}")
                 continue
 
-            logger.debug(
-                f"FRAME cmd={command_name}  "
-                f"0x{to_address:02X}←0x{from_address:02X}  "
-                f"body={body_size}B  [{frame_hex}]"
-            )
+            if debug:
+                logger.debug(
+                    f"FRAME cmd={command_name}  "
+                    f"0x{to_address:02X}←0x{from_address:02X}  "
+                    f"body={body_size}B  [{bytes(frame).hex()}]"
+                )
             self.decode_and_queue_frame(frame, command_name)
 
     def decode_and_queue_frame(self, frame, command_name):
@@ -82,17 +88,19 @@ class FrameBuffer:
         decoder = decode_ascii_frame if command_name == "LatLon" else decode_frame
         decoded_frame = decoder(frame)
         if decoded_frame and "values" in decoded_frame:
-            channel_names = list(decoded_frame["values"].keys())
-            names_str = ", ".join(channel_names[:4])
-            if len(channel_names) > 4:
-                names_str += f", +{len(channel_names) - 4} more"
             try:
                 self.frame_queue.put_nowait(decoded_frame)
-                logger.debug(f"  QUEUE {len(channel_names)} channel(s)  [{names_str}]")
+                if logger.isEnabledFor(logging.DEBUG):
+                    channel_names = list(decoded_frame["values"].keys())
+                    names_str = ", ".join(channel_names[:4])
+                    if len(channel_names) > 4:
+                        names_str += f", +{len(channel_names) - 4} more"
+                    logger.debug(f"  QUEUE {len(channel_names)} channel(s)  [{names_str}]")
             except Full:
                 logger.warning("Frame queue full, dropping frame.")
         else:
-            logger.debug(f"  QUEUE fail    decode error  [{frame.hex()}]")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"  QUEUE fail    decode error  [{frame.hex()}]")
 
     def get_buffer_size(self):
         return len(self.buffer)

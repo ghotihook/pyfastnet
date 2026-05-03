@@ -301,8 +301,8 @@ FORMAT_SIZE_MAP = {
     0x03: 2,  # 16 bits (2 bytes)
     0x04: 4,  # 32 bits (4 bytes)
     0x05: 4,  # 32 bits (4 bytes)
-    0x06: 4,  # 16 bits (2 bytes)
-    0x07: 4,  # 16 bits (2 bytes)
+    0x06: 4,  # 32 bits (4 bytes)
+    0x07: 4,  # 32 bits (4 bytes)
     0x08: 2,  # 16 bits (2 bytes)
     0x0A: 4   # 32 bits (4 bytes)
 }
