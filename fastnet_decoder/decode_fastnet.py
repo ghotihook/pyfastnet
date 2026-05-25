@@ -18,17 +18,6 @@ _DECIMAL_PLACES_MAP = {1: 0, 10: 1, 100: 2, 1000: 3}
 def _sign_from_layout(layout: str) -> int:
     return -1 if layout in ("-[data]", "=[data]", "L[data]") else 1
 
-# Channels where a specific layout means negative even though the symbol
-# isn't a generic sign indicator (e.g. VMG "d" = downwind = negative VMG).
-_CHANNEL_NEGATIVE_LAYOUTS: dict[int, set] = {
-    0x7F: {"d[data]"},  # VMG: downwind indicator → negative value
-}
-
-# Channels that are always a magnitude — clamp to abs() regardless of layout.
-_CHANNEL_ALWAYS_POSITIVE: set = {
-    0x83,  # Tidal Drift — speed of water current, direction carried by Tidal Set
-}
-
 
 def _display_from_layout(layout: str, formatted: str) -> str:
     if layout is None:        return formatted
@@ -255,11 +244,6 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             # format 0x09 has not been observed in captured data
             logger.debug(f"       unsupported format 0x{format_bits:02X}")
             return None
-
-        if value is not None and layout in _CHANNEL_NEGATIVE_LAYOUTS.get(channel_id, set()):
-            value = -abs(value)
-        if value is not None and channel_id in _CHANNEL_ALWAYS_POSITIVE:
-            value = abs(value)
 
         return {
             "channel_id":   f"0x{channel_id:02X}",
