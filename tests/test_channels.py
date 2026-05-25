@@ -249,7 +249,6 @@ class TestHeelAndTrim(unittest.TestCase):
 class TestSeaTemperature(unittest.TestCase):
     """
     Stored-log frame also carries sea temperature in Celsius and Fahrenheit.
-    Format 0x07 with a segment byte not present in SEGMENT_A → layout '?'.
     Cross-check: 23 °C ≈ 73 °F within 1 degree rounding.
     """
     FRAME = "ff011801e7cd840000acc7cf84ff0000001f17005c00171e17007400494f"
@@ -259,11 +258,11 @@ class TestSeaTemperature(unittest.TestCase):
 
     def test_sea_temp_celsius(self):
         self.assertEqual(self.v["Sea Temperature (°C)"]["value"], 23.0)
-        self.assertEqual(self.v["Sea Temperature (°C)"]["display_text"], "23")
+        self.assertEqual(self.v["Sea Temperature (°C)"]["display_text"], "23°C")
 
     def test_sea_temp_fahrenheit(self):
         self.assertEqual(self.v["Sea Temperature (°F)"]["value"], 73.0)
-        self.assertEqual(self.v["Sea Temperature (°F)"]["display_text"], "73")
+        self.assertEqual(self.v["Sea Temperature (°F)"]["display_text"], "73°F")
 
     def test_cross_unit_consistency(self):
         c = self.v["Sea Temperature (°C)"]["value"]

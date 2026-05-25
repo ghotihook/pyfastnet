@@ -283,16 +283,22 @@ SEGMENT_A = {
     0xf3: "H[data]",  0x73: "[data]H",
     0x00: " ",
 
-    # Plain-positive layout codes (no sign decoration) confirmed from raw log replay
-    0x80: " ",   # depth channels (0xC1/C2/C3)
-    0x5c: " ",   # sea temperature °C
-    0x74: " ",   # sea temperature °F
-    0x58: " ",   # autopilot compass target (0–360° bearing)
-    0x99: " ",   # VMG positive direction
-    0xbb: " ",   # VMG / tidal drift positive
-    0xd8: " ",   # leeway (always 0.0 in captured data; defaulted to plain)
-    0x54: " ",   # true wind angle positive (starboard tack)
-    0x01: " ",   # linear sensor null/zero state
+    # Plain-positive codes — no suffix, confirmed from 7-segment bit decoding
+    0x80: " ",   # blank (no segments lit) — depth channels
+    0x01: " ",   # decimal-point only — linear sensor null/zero state
+    0x99: " ",   # top+bottom bars + dp — VMG positive direction indicator
+    0xbb: " ",   # f,d,b,c + dp — VMG / tidal drift positive indicator
+    0x32: " ",   # f,d,c — AP Off Course low indicator
+    0x61: " ",   # g,f + dp — AP Off Course high indicator
+
+    # Degree / temperature suffix codes (symbol appears AFTER value)
+    0x5c: "[data]°C",  # a,c,d,e,f (C-shape) — sea temperature °C
+    0x74: "[data]°F",  # a,b,d,e,f (F-shape) — sea temperature °F
+    0x58: "[data]°",   # a,d,g (three bars, ≡) — bearing / compass target, positive
+    0x54: "[data]°",   # a,d,e (partial) — true wind angle, starboard/positive
+
+    # Negative counterpart: same three-bar symbol (a,d,g) BEFORE value
+    0xd8: "°[data]",   # pair of 0x58 — leeway port (negative)
 }
 
 SEGMENT_B = {
