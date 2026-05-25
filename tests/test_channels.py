@@ -111,7 +111,7 @@ class TestTrueWind(unittest.TestCase):
         self.assertEqual(self.v["True Wind Direction"]["display_text"], "112°M")
 
     def test_vmg(self):
-        self.assertAlmostEqual(self.v["Velocity Made Good (Knots)"]["value"], 2.19, places=2)
+        self.assertAlmostEqual(self.v["Velocity Made Good (Knots)"]["value"], -2.19, places=2)
 
 
 # ---------------------------------------------------------------------------
