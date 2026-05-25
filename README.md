@@ -1,112 +1,126 @@
 # pyfastnet
-Fastnet is the propriatory protocol used by B&G on some older instruments, tested on Hydra/H2000. It might work on other systems. I developed this for personal use and publishing for general interest only. 
 
-# Purpose
-This library can be fed a stream of fastnet data, it will decode and return structured instrument data for further processing. Syncronisation, checksum and decoding is handled by the library.
+Python library for decoding the FastNet protocol used by B&G Hydra/H2000 instruments. Developed for personal use and published for general interest.
 
-# Companion App
-- A full implementation can be found here, it takes input from a serial port or dummy file and broadcasts NMEA messages via UDP [fastnet2ip](https://github.com/ghotihook/fastnet2ip) Easy to install on a raspberry pi, core mp135, mac, linux.
+## Purpose
 
-# Example input/output
-Byte string from Fastnet including "ff051801e34e0a02c402754d6100464f610024520af683f6835113a0064b"
+Feed a raw byte stream from a FastNet bus into the library. It handles synchronisation, checksum validation, and decoding — returning structured instrument data ready for further processing.
 
-to_address: Entire System
-from_address: Normal CPU (Wind Board in H2000)
-command: Broadcast
-values: 
+## Installation
+
 ```
-{
-  'Apparent Wind Speed (Raw)': {'channel_id': '0x4E', 'format_byte': '0x0A', 'data_bytes': '02c40275', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': 708.0, 'second': 629.0}, 'interpreted': 708.0}, 
-
-  'Apparent Wind Speed (Knots)': {'channel_id': '0x4D', 'format_byte': '0x61', 'data_bytes': '0046', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 70, 'interpreted': 7.0}, 
-  
-  'Apparent Wind Speed (m/s)': {'channel_id': '0x4F', 'format_byte': '0x61', 'data_bytes': '0024', 'divisor': 10, 'digits': 3, 'format_bits': 1, 'raw': 36, 'interpreted': 3.6}, 
-  
-  'Apparent Wind Angle (Raw)': {'channel_id': '0x52', 'format_byte': '0x0A', 'data_bytes': 'f683f683', 'divisor': 1, 'digits': 1, 'format_bits': 10, 'raw': {'first': -2429.0, 'second': -2429.0}, 'interpreted': -2429.0}, 
-  
-  'Apparent Wind Angle': {'channel_id': '0x51', 'format_byte': '0x13', 'data_bytes': 'a006', 'divisor': 1, 'digits': 2, 'format_bits': 3, 'raw': {'segment_code': '0xa0', 'segment_code_bin': '0b10100000', 'unsigned_value': 6, 'layout': '-[data]'}, 'interpreted': -6.0}}
+pip install pyfastnet
 ```
 
-# Example implementation
-```
+## Example usage
+
+```python
 #!/usr/bin/env python3
 import serial
-import time
-from pprint import pprint
 from fastnet_decoder import FrameBuffer
 
-def main():
-    fb = FrameBuffer()
-    # open /dev/ttyUSB0 at 28,800 baud, 8E2, 0.1 s timeout
-    ser = serial.Serial(
-        port="/dev/ttyUSB0",
-        baudrate=28800,
-        bytesize=serial.EIGHTBITS,
-        stopbits=serial.STOPBITS_TWO,
-        parity=serial.PARITY_ODD,
-        timeout=0.1
-    )
+fb = FrameBuffer()
 
-    try:
-        while True:
-            data = ser.read(256)
-            if not data:
-                time.sleep(0.01)
-                continue
+ser = serial.Serial(
+    port="/dev/ttyUSB0",
+    baudrate=28800,
+    bytesize=serial.EIGHTBITS,
+    stopbits=serial.STOPBITS_TWO,
+    parity=serial.PARITY_ODD,
+    timeout=0.1,
+)
 
-            # 1) feed raw bytes into the frame buffer
-            fb.add_to_buffer(data)
-
-            # 2) extract & decode any complete frames
-            fb.get_complete_frames()
-
-            # 3) peek at the entire queue as a list
-            queue_contents = list(fb.frame_queue.queue)
-            if queue_contents:
-                print("Current decoded frames in queue:")
-                pprint(queue_contents)
-            else:
-                print("Queue is empty.")
-
-            # 4) (optionally) drain the queue for processing
-            while not fb.frame_queue.empty():
-                frame = fb.frame_queue.get()
-                # replace this with whatever you need
-                print("Processing frame:", frame)
-
-    except KeyboardInterrupt:
-        print("Stopping…")
-    finally:
-        ser.close()
-
-if __name__ == "__main__":
-    main()
+try:
+    while True:
+        data = ser.read(256)
+        if not data:
+            continue
+        fb.add_to_buffer(data)
+        fb.get_complete_frames()
+        while not fb.frame_queue.empty():
+            frame = fb.frame_queue.get()
+            for channel, decoded in frame["values"].items():
+                print(channel, decoded)
+finally:
+    ser.close()
 ```
 
+## Output format
 
-# Important library calls - debug
-- ```set_log_level(DEBUG)```
-- ```fastnetframebuffer.get_buffer_size()```
-- ```fastnetframebuffer.get_buffer_contents()```
+Each decoded frame is a dict with `to_address`, `from_address`, `command`, and `values`. Each entry in `values` is keyed by channel name:
 
-
-
-# Installation
-```pip3 install pyfastnet```
-
-On a raspberry pi and some other systems this is done from with a virtual env
-
-```python -m venv --system-site-packages ~/python_environment
-source ~/python_environment/bin/activate
-pip3 install pyfastnet
-deactivate
-~/python_environment/bin/python3 pyfastnet.py -h 
+```python
+{
+  "to_address":   "Entire System",
+  "from_address": "Normal CPU (Wind Board in H2000)",
+  "command":      "Broadcast",
+  "values": {
+    "Apparent Wind Speed (Knots)": {
+      "channel_id":   "0x4D",
+      "value":        7.0,
+      "display_text": "7.0",
+      "layout":       None,
+    },
+    "Apparent Wind Angle": {
+      "channel_id":   "0x51",
+      "value":        -6.0,
+      "display_text": "-6.0",
+      "layout":       "-[data]",
+    },
+    "True Wind Direction": {
+      "channel_id":   "0x6D",
+      "value":        213.0,
+      "display_text": "213.0°M",
+      "layout":       "°M",
+    },
+  }
+}
 ```
 
+### Layout field
 
-## Acknowledgments / References
+The `layout` field describes the indicator symbol shown on the physical display around the numeric value:
 
-- [trlafleur - Collector of significant background](https://github.com/trlafleur) 
-- [Oppedijk - Background and patches](https://www.oppedijk.com/bandg/fastnet.html)
-- [timmathews - Significant implementation in Cpp](https://github.com/timmathews/bg-fastnet-driver)
-- Significant help from chatGPT!
+| `layout` | Meaning | Sign |
+|---|---|---|
+| `None` | No indicator symbol | positive |
+| `"[data]="` | `=` after value (starboard) | positive |
+| `"=[data]"` | `=` before value (port) | negative |
+| `"[data]-"` | `-` after value (starboard) | positive |
+| `"-[data]"` | `-` before value (port) | negative |
+| `"H[data]"` | `H` prefix — heading | positive |
+| `"°M"` | Magnetic bearing suffix | positive |
+| `"u[data]"` | `u` prefix — upwind (VMG) | positive |
+| `"d[data]"` | `d` prefix — downwind (VMG) | positive |
+| `"L[data]"` | `L` before — leeway port | negative |
+| `"[data]L"` | `L` after — AP compass target | positive |
+| `"[data]°C"` | Celsius suffix | positive |
+| `"[data]°F"` | Fahrenheit suffix | positive |
+| `"[data]z"` / `"z[data]"` | Dog-leg symbol — AP off course | positive |
+| `"TBC"` | Symbol seen but not yet identified | positive |
+
+## Debug API
+
+```python
+from fastnet_decoder import set_log_level
+import logging
+set_log_level(logging.DEBUG)
+```
+
+```python
+fb.get_buffer_size()      # bytes currently in buffer
+fb.get_buffer_contents()  # hex string of buffer contents
+```
+
+## Companion apps
+
+- [fastnet2ip](https://github.com/ghotihook/fastnet2ip) — reads FastNet from serial, broadcasts NMEA 0183 via UDP
+- [fastnet2ip_n2k](https://github.com/ghotihook/fastnet2ip_n2k) — reads FastNet from serial, broadcasts NMEA 2000 via UDP
+
+Both run on Raspberry Pi, macOS, or Linux.
+
+## Acknowledgments
+
+- [trlafleur](https://github.com/trlafleur) — background research
+- [Oppedijk](https://www.oppedijk.com/bandg/fastnet.html) — protocol documentation
+- [timmathews](https://github.com/timmathews/bg-fastnet-driver) — C++ reference implementation

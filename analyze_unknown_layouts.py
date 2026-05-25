@@ -136,7 +136,7 @@ def main():
                         examples[("A",) + key].append((data_bytes.hex(), result.get("value")))
 
                 # SEGMENT_B miss (format 0x06 only)
-                if format_bits == 0x06 and "?" in (result.get("display_text") or ""):
+                if format_bits == 0x06 and "TBC" in (result.get("display_text") or ""):
                     for b in data_bytes:
                         if b not in SEGMENT_B:
                             key = (channel_id, b)

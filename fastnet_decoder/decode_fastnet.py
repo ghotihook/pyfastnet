@@ -211,7 +211,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             if len(data_bytes) != 4:
                 return None
             value        = None
-            display_text = "".join(SEGMENT_B.get(b, "?") for b in data_bytes)
+            display_text = "".join(SEGMENT_B.get(b, "TBC") for b in data_bytes)
 
         elif format_bits == 0x07:
             if len(data_bytes) != 4:
