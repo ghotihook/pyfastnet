@@ -24,6 +24,11 @@ _CHANNEL_NEGATIVE_LAYOUTS: dict[int, set] = {
     0x7F: {"d[data]"},  # VMG: downwind indicator → negative value
 }
 
+# Channels that are always a magnitude — clamp to abs() regardless of layout.
+_CHANNEL_ALWAYS_POSITIVE: set = {
+    0x83,  # Tidal Drift — speed of water current, direction carried by Tidal Set
+}
+
 
 def _display_from_layout(layout: str, formatted: str) -> str:
     if layout is None:        return formatted
@@ -253,6 +258,8 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
 
         if value is not None and layout in _CHANNEL_NEGATIVE_LAYOUTS.get(channel_id, set()):
             value = -abs(value)
+        if value is not None and channel_id in _CHANNEL_ALWAYS_POSITIVE:
+            value = abs(value)
 
         return {
             "channel_id":   f"0x{channel_id:02X}",
