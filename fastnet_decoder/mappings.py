@@ -282,11 +282,36 @@ SEGMENT_A = {
     0x8c: "=[data]",  0x0c: "[data]=",
     0xf3: "H[data]",  0x73: "[data]H",
     0x00: " ",
+
+    # Plain-positive layout codes (no sign decoration) confirmed from raw log replay
+    0x80: " ",   # depth channels (0xC1/C2/C3)
+    0x5c: " ",   # sea temperature °C
+    0x74: " ",   # sea temperature °F
+    0x58: " ",   # autopilot compass target (0–360° bearing)
+    0x99: " ",   # VMG positive direction
+    0xbb: " ",   # VMG / tidal drift positive
+    0xd8: " ",   # leeway (always 0.0 in captured data; defaulted to plain)
+    0x54: " ",   # true wind angle positive (starboard tack)
+    0x01: " ",   # linear sensor null/zero state
 }
 
 SEGMENT_B = {
     0xBE: "O", 0xE8: "F", 0x62: "n",
     0x72: "o", 0x40: "-", 0x00: " ",
+
+    # Digits confirmed from 7-segment encoding (e=bit7,g=bit6,f=bit5,d=bit4,a=bit3,b=bit2,c=bit1,dp=bit0)
+    # and verified against sea-temperature display context (format 0x06 on channel 0x1F)
+    0x06: "1",
+    0xFA: "6",   # a,c,d,e,f,g — also confirmed by -6°C display context
+    0x0E: "7",   # a,b,c
+    0xFE: "8",   # all segments
+
+    # B&G variant digit encoding (non-standard segment activation):
+    0xDA: "2",   # a,c,d,e,g  (uses lower-right c instead of standard upper-right b)
+    0xDE: "3",   # a,b,c,d,e,g (standard 3 + lower-left e)
+    0xC6: "4",   # b,c,e,g  (uses lower-left e instead of standard upper-left f; 2 occurrences)
+
+    0xB8: "C",   # Celsius label — a,d,e,f segments
 }
 
 AUTOPILOT_MODES = {
