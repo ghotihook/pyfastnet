@@ -258,7 +258,7 @@ CHANNEL_LOOKUP = {
     0xEB: "Speed Over Ground",
     0xEC: "VMG to Waypoint (VMC)",
     0xED: "Time to Waypoint",
-    0xEE: "Cross Track Error",
+    0xEE: "Cross Track Error",  # layout TBC — not present in captured log data
     0xEF: "Remote 0",
     0xF0: "Remote 1",
     0xF1: "Remote 2",

@@ -186,7 +186,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
         elif format_bits == 0x03:
             if len(data_bytes) != 2:
                 return None
-            layout   = SEGMENT_A.get(data_bytes[0], "?")
+            layout   = SEGMENT_A.get(data_bytes[0], "TBC")
             unsigned = data_bytes[1]
             value    = _sign_from_layout(layout) * unsigned / divisor
             display_text = _display_from_layout(layout, f"{value:.{decimal_places}f}")
@@ -217,7 +217,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             if len(data_bytes) != 4:
                 return None
             # data_bytes[0] is a status/flag byte; byte 1 is the segment/layout code
-            layout   = SEGMENT_A.get(data_bytes[1], "?")
+            layout   = SEGMENT_A.get(data_bytes[1], "TBC")
             msb      = data_bytes[2] & 0b01111111
             unsigned = (msb << 8) | data_bytes[3]
             value    = _sign_from_layout(layout) * unsigned / divisor
@@ -227,7 +227,7 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
             if len(data_bytes) != 2:
                 return None
             segment_code = (data_bytes[0] >> 1) & 0b01111111
-            layout       = SEGMENT_A.get(segment_code, "?")
+            layout       = SEGMENT_A.get(segment_code, "TBC")
             unsigned     = ((data_bytes[0] & 0b1) << 8) | data_bytes[1]
             value        = unsigned / divisor
             display_text = _display_from_layout(layout, f"{value:.{decimal_places}f}")

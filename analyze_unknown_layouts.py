@@ -128,7 +128,7 @@ def main():
                     continue
 
                 # SEGMENT_A miss
-                if result.get("layout") == "?":
+                if result.get("layout") == "TBC":
                     seg_code = seg_code_for(format_bits, data_bytes)
                     key = (channel_id, format_bits, seg_code)
                     seg_a_counts[key] += 1
