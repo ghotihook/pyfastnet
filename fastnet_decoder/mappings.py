@@ -281,24 +281,28 @@ SEGMENT_A = {
     0x20: "[data]-",  0xa0: "-[data]",
     0x8c: "=[data]",  0x0c: "[data]=",
     0xf3: "H[data]",  0x73: "[data]H",
-    0x00: " ",
 
-    # Plain-positive codes — no suffix, confirmed from 7-segment bit decoding
-    0x80: " ",   # blank (no segments lit) — depth channels
-    0x01: " ",   # decimal-point only — linear sensor null/zero state
-    0x99: " ",   # top+bottom bars + dp — VMG positive direction indicator
-    0xbb: " ",   # f,d,b,c + dp — VMG / tidal drift positive indicator
-    0x32: " ",   # f,d,c — AP Off Course low indicator
-    0x61: " ",   # g,f + dp — AP Off Course high indicator
+    # Blank — no segments lit, no indicator symbol
+    0x00: None,   # AFTER, all blank — COG, SOG
+    0x80: None,   # BEFORE, all blank — Depth (m/ft/fm)
 
-    # Degree / temperature suffix codes (symbol appears AFTER value)
-    0x5c: "[data]°C",  # a,c,d,e,f (C-shape) — sea temperature °C
-    0x74: "[data]°F",  # a,b,d,e,f (F-shape) — sea temperature °F
-    0x58: "[data]°",   # a,d,g (three bars, ≡) — bearing / compass target, positive
-    0x54: "[data]°",   # a,d,e (partial) — true wind angle, starboard/positive
+    # Confirmed symbols
+    0xbb: "d[data]",   # 'd' BEFORE — Tidal Drift
+    0x99: "u[data]",   # 'u' BEFORE — VMG (upwind indicator)
+    0x58: "[data]L",   # 'L' AFTER  — AP Compass Target
+    0xd8: "L[data]",   # 'L' BEFORE — Leeway port/negative
 
-    # Negative counterpart: same three-bar symbol (a,d,g) BEFORE value
-    0xd8: "°[data]",   # pair of 0x58 — leeway port (negative)
+    # AP Off Course — dog-leg symbol, direction shown by z position
+    0x32: "[data]z",   # z after value — AP Off Course one direction
+    0x61: "z[data]",   # z before value — AP Off Course other direction
+
+    # Temperature suffixes
+    0x5c: "[data]°C",  # 'C' shape AFTER — Sea Temperature °C
+    0x74: "[data]°F",  # 'F' shape AFTER — Sea Temperature °F
+
+    # TBC — symbol seen but not yet identified
+    0x01: "TBC",   # lower-right segment only — Linear sensors, Node Reset
+    0x54: "TBC",   # upper-left+lower-left+top — True Wind Angle starboard
 }
 
 SEGMENT_B = {

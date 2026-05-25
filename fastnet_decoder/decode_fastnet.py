@@ -16,19 +16,24 @@ _DECIMAL_PLACES_MAP = {1: 0, 10: 1, 100: 2, 1000: 3}
 #   "°M"       →  magnetic bearing, suffix added after value
 
 def _sign_from_layout(layout: str) -> int:
-    return -1 if layout in ("-[data]", "=[data]", "°[data]") else 1
+    return -1 if layout in ("-[data]", "=[data]", "L[data]") else 1
 
 
 def _display_from_layout(layout: str, formatted: str) -> str:
-    if layout == "°M":       return f"{formatted}°M"
-    if layout == "H[data]":  return f"H{formatted}"
-    if layout == "[data]H":  return f"{formatted}H"
-    if layout == "[data]=":  return f"{formatted}="
-    if layout == "[data]-":  return f"{formatted}-"
-    if layout == "[data]°C": return f"{formatted}°C"
-    if layout == "[data]°F": return f"{formatted}°F"
-    if layout == "[data]°":  return f"{formatted}°"
-    if layout == "°[data]":  return f"°{formatted}"
+    if layout is None:        return formatted
+    if layout == "°M":        return f"{formatted}°M"
+    if layout == "H[data]":   return f"H{formatted}"
+    if layout == "[data]H":   return f"{formatted}H"
+    if layout == "[data]=":   return f"{formatted}="
+    if layout == "[data]-":   return f"{formatted}-"
+    if layout == "[data]°C":  return f"{formatted}°C"
+    if layout == "[data]°F":  return f"{formatted}°F"
+    if layout == "[data]L":   return f"{formatted}L"
+    if layout == "L[data]":   return f"L{formatted}"
+    if layout == "[data]z":   return f"{formatted}z"
+    if layout == "z[data]":   return f"z{formatted}"
+    if layout == "u[data]":   return f"u{formatted}"
+    if layout == "d[data]":   return f"d{formatted}"
     return formatted
 
 
