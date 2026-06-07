@@ -77,6 +77,22 @@ Each decoded frame is a dict with `to_address`, `from_address`, `command`, and `
 }
 ```
 
+### Position (LatLon) frames
+
+Position frames (command `LatLon`) appear under the `"LatLon"` key. The raw coordinate
+string (`DDMM.mmm` with hemisphere letters) is carried in `display_text`; `value` is
+`None`. The originating source's marker byte is preserved in `channel_id` (e.g. `0x47`,
+`0x4E`) but does not affect the key:
+
+```python
+"LatLon": {
+    "channel_id":   "0x4E",
+    "value":        None,
+    "display_text": "3352.450S15113.920E",
+    "layout":       None,
+}
+```
+
 ### Layout field
 
 The `layout` field describes the indicator symbol shown on the physical display around the numeric value:

@@ -192,7 +192,6 @@ CHANNEL_LOOKUP = {
     0x42: "Boatspeed (Raw)",
     0x44: "Yaw rate",
     0x46: "Autopilot Speed Fixed (Knots)",
-    0x47: "LatLon",
     0x49: "Heading",
     0x4A: "Heading (Raw)",
     0x4D: "Apparent Wind Speed (Knots)",

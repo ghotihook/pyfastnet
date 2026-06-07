@@ -119,9 +119,14 @@ def decode_ascii_frame(frame: bytes) -> dict:
         channel_id   = body[0]
         # body[1] is a format byte — not used for ASCII frames
         data_bytes   = body[2:]
-        channel_name = CHANNEL_LOOKUP.get(channel_id)
-        if channel_name is None:
-            channel_name = f"Unknown (0x{channel_id:02X})"
+        # This decoder is only ever called for LatLon command frames, so the
+        # entry is named from the command — not from body[0]. body[0] is a
+        # source/marker byte that varies by GPS unit (0x47, 0x4E, ...) and is
+        # NOT a generic channel id; looking it up in CHANNEL_LOOKUP produced
+        # nonsense names like "Apparent Wind Speed (Raw)". The raw byte is kept
+        # in channel_id below for diagnostics.
+        cmd_name     = COMMAND_LOOKUP.get(command)
+        channel_name = cmd_name if cmd_name is not None else f"Unknown (0x{command:02X})"
 
         try:
             ascii_text = data_bytes.decode("ascii").strip()
@@ -133,7 +138,6 @@ def decode_ascii_frame(frame: bytes) -> dict:
 
         to_name   = ADDRESS_LOOKUP.get(to_address)
         from_name = ADDRESS_LOOKUP.get(from_address)
-        cmd_name  = COMMAND_LOOKUP.get(command)
 
         return {
             "to_address":   to_name   if to_name   is not None else f"Unknown (0x{to_address:02X})",
