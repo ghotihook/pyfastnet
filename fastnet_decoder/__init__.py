@@ -1,3 +1,5 @@
+__version__ = "2.0.16"
+
 from .frame_buffer import FrameBuffer
 from .decode_fastnet import decode_frame, decode_ascii_frame
 from .logger import logger, set_log_level  # Import set_log_level for user control
