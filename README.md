@@ -130,10 +130,9 @@ fb.get_buffer_contents()  # hex string of buffer contents
 
 ## Companion apps
 
-- [fastnet2ip](https://github.com/ghotihook/fastnet2ip) — reads FastNet from serial, broadcasts NMEA 0183 via UDP
-- [fastnet2ip_n2k](https://github.com/ghotihook/fastnet2ip_n2k) — reads FastNet from serial, broadcasts NMEA 2000 via UDP
+- [fastnet2ip](https://github.com/ghotihook/fastnet2ip) — reads FastNet from serial and broadcasts it over UDP as either NMEA 0183 or NMEA 2000 (selected with `--output`). Install with `pipx install fastnet2ip`.
 
-Both run on Raspberry Pi, macOS, or Linux.
+Runs on Raspberry Pi, macOS, or Linux.
 
 ## Acknowledgments
 
