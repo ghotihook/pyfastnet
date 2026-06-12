@@ -1,4 +1,4 @@
-__version__ = "2.0.16"
+__version__ = "2.0.17"
 
 from .frame_buffer import FrameBuffer
 from .decode_fastnet import decode_frame, decode_ascii_frame

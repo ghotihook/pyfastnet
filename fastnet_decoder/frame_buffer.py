@@ -1,7 +1,7 @@
 import logging
 from .utils import calculate_checksum
 from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
-from .decode_fastnet import decode_frame, decode_ascii_frame
+from .decode_fastnet import decode_frame, decode_ascii_frame, probe_frame
 from .logger import logger
 from queue import Queue, Full
 
@@ -84,9 +84,22 @@ class FrameBuffer:
             self.decode_and_queue_frame(frame, command_name)
 
     def decode_and_queue_frame(self, frame, command_name):
-        """Decode a frame and add it to the queue if valid."""
-        decoder = decode_ascii_frame if command_name == "LatLon" else decode_frame
-        decoded_frame = decoder(frame)
+        """
+        Decode a frame and add it to the queue if valid.
+
+        Only Broadcast frames carry the channel-record body layout, and LatLon
+        frames carry ASCII; those are decoded and queued. Every other command
+        (pilot messages, NMEA-sourced data, etc.) has an unknown body structure,
+        so it is never queued — it is only probed speculatively for debugging.
+        """
+        if command_name == "Broadcast":
+            decoded_frame = decode_frame(frame)
+        elif command_name == "LatLon":
+            decoded_frame = decode_ascii_frame(frame)
+        else:
+            probe_frame(frame)
+            return
+
         if decoded_frame and "values" in decoded_frame:
             try:
                 self.frame_queue.put_nowait(decoded_frame)

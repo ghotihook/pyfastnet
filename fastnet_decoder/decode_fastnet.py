@@ -1,4 +1,5 @@
 import datetime
+import logging
 from .mappings import ADDRESS_LOOKUP, COMMAND_LOOKUP, CHANNEL_LOOKUP, FORMAT_SIZE_MAP
 from .mappings import SEGMENT_A, SEGMENT_B, AUTOPILOT_MODES
 from .logger import logger
@@ -107,6 +108,81 @@ def decode_frame(frame: bytes) -> dict:
     except Exception as e:
         logger.error(f"Unexpected error decoding frame: {e}  [{frame.hex()}]")
         return {"error": "Decoding failure"}
+
+
+def probe_frame(frame: bytes) -> None:
+    """
+    Speculatively unpack a non-broadcast frame using the same channel-record
+    assembly as Broadcast frames, for reverse-engineering only.
+
+    The body layout of non-broadcast commands (pilot messages, NMEA-sourced
+    data, etc.) is NOT known to match the Broadcast channel-record format, so
+    everything decoded here is a guess: results are logged at DEBUG and are
+    never queued or assigned to channels. The point is to eyeball whether the
+    same (channel_id, format_byte, data...) structure holds for these frames.
+    """
+    if not logger.isEnabledFor(logging.DEBUG):
+        return
+    try:
+        to_address   = frame[0]
+        from_address = frame[1]
+        command      = frame[3]
+        body         = frame[5:-1]
+
+        to_name   = ADDRESS_LOOKUP.get(to_address,   f"Unknown (0x{to_address:02X})")
+        from_name = ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})")
+        cmd_name  = COMMAND_LOOKUP.get(command,      f"Unknown (0x{command:02X})")
+
+        logger.debug(
+            f"  PROBE cmd={cmd_name}  {to_name}←{from_name}  body=[{body.hex()}]"
+        )
+
+        index = 0
+        while index < len(body):
+            if index + 1 >= len(body):
+                logger.debug(f"    PROBE trailing byte  [{body[index:].hex()}]")
+                break
+
+            channel_id   = body[index]
+            format_byte  = body[index + 1]
+            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+            index += 2
+
+            data_length = FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
+            if data_length == 0:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  unknown format, stop  "
+                    f"remaining=[{body[index:].hex()}]"
+                )
+                break
+            if index + data_length > len(body):
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  incomplete  need={data_length}B  "
+                    f"have={len(body) - index}B  remaining=[{body[index:].hex()}]"
+                )
+                break
+
+            data_bytes = body[index:index + data_length]
+            index     += data_length
+
+            decoded = decode_format_and_data(channel_id, format_byte, data_bytes)
+            if decoded:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  "
+                    f"value={decoded['value']}  display='{decoded['display_text']}'  "
+                    f"layout={decoded['layout']}"
+                )
+            else:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  (no decode)"
+                )
+
+    except Exception as e:
+        logger.debug(f"  PROBE error: {e}  [{frame.hex()}]")
 
 
 def decode_ascii_frame(frame: bytes) -> dict:
