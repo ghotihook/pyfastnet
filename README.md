@@ -1,18 +1,18 @@
 # pyfastnet
 
-Python library for decoding the FastNet protocol used by B&G Hydra/H2000 instruments. Developed for personal use and published for general interest.
+A Python library for decoding the **FastNet** protocol used by B&G Hydra / H2000
+instruments. Feed it raw bytes from the Fastnet bus and it handles
+synchronisation, checksum validation, and decoding — returning structured
+instrument data ready for further processing.
 
-## Purpose
+Developed for personal use and published for general interest. Runs on Raspberry
+Pi, macOS, or Linux.
 
-Feed a raw byte stream from a FastNet bus into the library. It handles synchronisation, checksum validation, and decoding — returning structured instrument data ready for further processing.
+## Quick start
 
-## Installation
-
-```
+```bash
 pip install pyfastnet
 ```
-
-## Example usage
 
 ```python
 #!/usr/bin/env python3
@@ -45,9 +45,36 @@ finally:
     ser.close()
 ```
 
+Serial settings for a B&G Fastnet bus are **28,800 baud, 8 data bits, odd parity,
+2 stop bits**. No instruments to hand? The companion apps below ship recorded
+captures you can replay.
+
+## The Fastnet toolkit
+
+Three projects stack together — pick the layer that matches where you want the
+data to end up:
+
+| Project | What it does | Use it when |
+|---|---|---|
+| **pyfastnet** *(this library)* | **Decoder.** Turns raw Fastnet bytes into named instrument channels. | You're writing your own Python and want the decoded data. |
+| [fastnet2ip](https://github.com/ghotihook/fastnet2ip) | **Serial → network.** Broadcasts decoded data over UDP as NMEA 0183 or NMEA 2000 (over IP). | Feeding Signal K, OpenCPN, or a plotter over WiFi / Ethernet. |
+| [fastnet2n2k](https://github.com/ghotihook/fastnet2n2k) | **Serial → physical NMEA 2000 bus.** Transmits PGNs onto a CAN backbone via SocketCAN. | Wiring into a real NMEA 2000 network / chartplotter. |
+
+```
+                          ┌─ fastnet2ip   → UDP (NMEA 0183 / NMEA 2000 over IP) → Signal K, OpenCPN, plotters
+B&G Fastnet bus ─(serial)─→ pyfastnet ─┤
+                          └─ fastnet2n2k → SocketCAN (NMEA 2000 PGNs)           → CAN backbone, chartplotter
+```
+
+pyfastnet is the **engine** at the bottom of the stack. If you only want the
+decoded data on your network or NMEA 2000 bus — including running it as an
+always-on systemd service — use one of the companion apps; they handle the serial
+port, a live data store, rate limiting, and output for you.
+
 ## Output format
 
-Each decoded frame is a dict with `to_address`, `from_address`, `command`, and `values`. Each entry in `values` is keyed by channel name:
+Each decoded frame is a dict with `to_address`, `from_address`, `command`, and
+`values`. Each entry in `values` is keyed by channel name:
 
 ```python
 {
@@ -79,10 +106,10 @@ Each decoded frame is a dict with `to_address`, `from_address`, `command`, and `
 
 ### Position (LatLon) frames
 
-Position frames (command `LatLon`) appear under the `"LatLon"` key. The raw coordinate
-string (`DDMM.mmm` with hemisphere letters) is carried in `display_text`; `value` is
-`None`. The originating source's marker byte is preserved in `channel_id` (e.g. `0x47`,
-`0x4E`) but does not affect the key:
+Position frames (command `LatLon`) appear under the `"LatLon"` key. The raw
+coordinate string (`DDMM.mmm` with hemisphere letters) is carried in
+`display_text`; `value` is `None`. The originating source's marker byte is
+preserved in `channel_id` (e.g. `0x47`, `0x4E`) but does not affect the key:
 
 ```python
 "LatLon": {
@@ -95,7 +122,10 @@ string (`DDMM.mmm` with hemisphere letters) is carried in `display_text`; `value
 
 ### Layout field
 
-The `layout` field describes the indicator symbol shown on the physical display around the numeric value:
+The `layout` field describes the indicator symbol shown on the physical display
+around the numeric value. It is the **only** place True/Magnetic, port/starboard
+sign, and similar context is carried — the raw stream contains no magnetic
+variation or deviation.
 
 | `layout` | Meaning | Sign |
 |---|---|---|
@@ -115,7 +145,7 @@ The `layout` field describes the indicator symbol shown on the physical display 
 | `"[data]z"` / `"z[data]"` | Dog-leg symbol — AP off course | positive |
 | `"TBC"` | Symbol seen but not yet identified | positive |
 
-## Debug API
+### Debug API
 
 ```python
 from fastnet_decoder import set_log_level
@@ -128,14 +158,12 @@ fb.get_buffer_size()      # bytes currently in buffer
 fb.get_buffer_contents()  # hex string of buffer contents
 ```
 
-## Companion apps
-
-- [fastnet2ip](https://github.com/ghotihook/fastnet2ip) — reads FastNet from serial and broadcasts it over UDP as either NMEA 0183 or NMEA 2000 (selected with `--output`). Install with `pipx install fastnet2ip`.
-
-Runs on Raspberry Pi, macOS, or Linux.
-
 ## Acknowledgments
 
 - [trlafleur](https://github.com/trlafleur) — background research
 - [Oppedijk](https://www.oppedijk.com/bandg/fastnet.html) — protocol documentation
 - [timmathews](https://github.com/timmathews/bg-fastnet-driver) — C++ reference implementation
+
+## License
+
+MIT — see [LICENSE](LICENSE).
