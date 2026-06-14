@@ -146,7 +146,10 @@ ADDRESS_LOOKUP = {
 }
 
 
-IGNORED_COMMANDS = {"Keep Alive", "Light Intensity"}
+IGNORED_COMMANDS = {"Keep Alive"}
+
+# Backlight level carried in the 1-byte body of a Light Intensity (0xC9) command.
+BACKLIGHT_LEVELS = {0x00: "Off", 0x01: "Low", 0x02: "Medium", 0x04: "High"}
 
 COMMAND_LOOKUP = {
     0x01: "Broadcast",
@@ -323,9 +326,12 @@ SEGMENT_B = {
     0xB8: "C",   # Celsius label — a,d,e,f segments
 }
 
-AUTOPILOT_MODES = {
-    20484: "Standby", 20737: "Compass", 20738: "Power",
-    20740: "Wind",    20755: "NMEA WP",
+# Autopilot Mode (channel 0xB5) is a 16-bit composite, not an opaque code:
+#   high byte = engagement state  (0x50 standby, 0x51 engaged, 0x59 compass steering)
+#   low  byte = selected mode     (see AUTOPILOT_MODE_BY_LOW)
+# When in standby (high 0x50) the mode is "Standby" regardless of the low byte.
+AUTOPILOT_MODE_BY_LOW = {
+    0x01: "Compass", 0x02: "Power", 0x04: "Wind", 0x13: "NMEA WP",
 }
 
 FORMAT_SIZE_MAP = {

@@ -1,7 +1,7 @@
 import datetime
 import logging
 from .mappings import ADDRESS_LOOKUP, COMMAND_LOOKUP, CHANNEL_LOOKUP, FORMAT_SIZE_MAP
-from .mappings import SEGMENT_A, SEGMENT_B, AUTOPILOT_MODES
+from .mappings import SEGMENT_A, SEGMENT_B, AUTOPILOT_MODE_BY_LOW, BACKLIGHT_LEVELS
 from .logger import logger
 
 
@@ -234,6 +234,50 @@ def decode_ascii_frame(frame: bytes) -> dict:
         return {"error": str(e)}
 
 
+def decode_light_frame(frame: bytes) -> dict:
+    """
+    Decode a Light Intensity (0xC9) command into the system backlight level.
+
+    Broadcast from a Pilot FFD to the whole system; the body is a single byte
+    giving the backlight level (Off/Low/Medium/High). Surfaced as a synthetic
+    "Backlight" channel so it queues like other channel data.
+    """
+    try:
+        to_address   = frame[0]
+        from_address = frame[1]
+        command      = frame[3]
+        body         = frame[5:-1]
+
+        if len(body) < 1:
+            return {"error": "Invalid body size"}
+
+        level     = body[0]
+        cmd_name  = COMMAND_LOOKUP.get(command)
+        to_name   = ADDRESS_LOOKUP.get(to_address)
+        from_name = ADDRESS_LOOKUP.get(from_address)
+
+        display_text = BACKLIGHT_LEVELS.get(level, f"Unknown ({level})")
+        logger.debug(f"  CH  Backlight  level={level}  display='{display_text}'")
+
+        return {
+            "to_address":   to_name   if to_name   is not None else f"Unknown (0x{to_address:02X})",
+            "from_address": from_name if from_name is not None else f"Unknown (0x{from_address:02X})",
+            "command":      cmd_name  if cmd_name  is not None else f"Unknown (0x{command:02X})",
+            "values": {
+                "Backlight": {
+                    "channel_id":   None,
+                    "value":        float(level),
+                    "display_text": display_text,
+                    "layout":       None,
+                }
+            }
+        }
+
+    except Exception as e:
+        logger.error(f"Error decoding Light Intensity frame: {e}")
+        return {"error": str(e)}
+
+
 def decode_format_and_data(channel_id, format_byte, data_bytes):
     try:
         divisor        = _DIVISOR_MAP[(format_byte >> 6) & 0b11]
@@ -250,8 +294,14 @@ def decode_format_and_data(channel_id, format_byte, data_bytes):
                 return None
             raw = int.from_bytes(data_bytes, byteorder="big", signed=True)
             if channel_id == 0xB5:
-                value        = float(raw)
-                display_text = AUTOPILOT_MODES.get(raw, f"Unknown ({raw})")
+                value     = float(raw)
+                high, low = (raw >> 8) & 0xFF, raw & 0xFF
+                if high == 0x50:
+                    display_text = "Standby"
+                elif high in (0x51, 0x59):
+                    display_text = AUTOPILOT_MODE_BY_LOW.get(low, f"Unknown ({raw})")
+                else:
+                    display_text = f"Unknown ({raw})"
             else:
                 value        = raw / divisor
                 display_text = f"{value:.{decimal_places}f}"

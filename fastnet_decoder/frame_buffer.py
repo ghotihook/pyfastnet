@@ -1,7 +1,7 @@
 import logging
 from .utils import calculate_checksum
 from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
-from .decode_fastnet import decode_frame, decode_ascii_frame, probe_frame
+from .decode_fastnet import decode_frame, decode_ascii_frame, decode_light_frame, probe_frame
 from .logger import logger
 from queue import Queue, Full
 
@@ -87,15 +87,18 @@ class FrameBuffer:
         """
         Decode a frame and add it to the queue if valid.
 
-        Only Broadcast frames carry the channel-record body layout, and LatLon
-        frames carry ASCII; those are decoded and queued. Every other command
-        (pilot messages, NMEA-sourced data, etc.) has an unknown body structure,
-        so it is never queued — it is only probed speculatively for debugging.
+        Broadcast frames carry the channel-record body layout, LatLon frames
+        carry ASCII, and Light Intensity frames carry a backlight level byte;
+        those are decoded and queued. Every other command (pilot messages,
+        NMEA-sourced data, etc.) has an unknown body structure, so it is never
+        queued — it is only probed speculatively for debugging.
         """
         if command_name == "Broadcast":
             decoded_frame = decode_frame(frame)
         elif command_name == "LatLon":
             decoded_frame = decode_ascii_frame(frame)
+        elif command_name == "Light Intensity":
+            decoded_frame = decode_light_frame(frame)
         else:
             probe_frame(frame)
             return

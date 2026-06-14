@@ -70,5 +70,38 @@ class TestAutopilotWind(unittest.TestCase):
         self.assertEqual(self.v["Autopilot Compass Target"]["display_text"], "331°M")
 
 
+class TestAutopilotModeComposite(unittest.TestCase):
+    """
+    Autopilot Mode (0xB5) is a 16-bit composite: high byte = engagement state
+    (0x50 standby / 0x51 engaged / 0x59 compass steering), low byte = selected
+    mode. These real frames cover values that previously decoded as Unknown.
+    """
+
+    def _mode(self, frame):
+        return _decode(frame)["Autopilot Mode"]["display_text"]
+
+    def test_compass_standby(self):
+        # 0x5001 — standby, Compass selected
+        self.assertEqual(
+            self._mode("ff121c01d2b5015001a606bee8e800af06bee8e8005306bee8e8007606bee8e8008b"),
+            "Standby",
+        )
+
+    def test_power_standby(self):
+        # 0x5002 — standby, Power selected
+        self.assertEqual(
+            self._mode("ff121c01d2b5015002a606bee8e800af06bee8e8005306bee8e8007606bee8e8008a"),
+            "Standby",
+        )
+
+    def test_power_engaged(self):
+        # 0x5102 — engaged, Power
+        self.assertEqual(self._mode("ff120a01e4b5015102a6070066012eb5"), "Power")
+
+    def test_compass_steering(self):
+        # 0x5901 — compass engaged and actively steering to a heading
+        self.assertEqual(self._mode("ff120a01e4b5015901a60700660124b8"), "Compass")
+
+
 if __name__ == "__main__":
     unittest.main()
