@@ -254,7 +254,7 @@ bandg
 │     ├─ offCourse               0xAF   rad    Autopilot Off Course
 │     └─ fixedSpeed              0x46   m/s    Autopilot Speed Fixed
 ├─ environment
-│  └─ pressureTrend              0x86   Pa/s   Barometric Pressure Trend
+│  └─ pressureTrend              0x86   —      Barometric Pressure Trend (rate/tendency; encoding TBC, opaque)
 ├─ time
 │  ├─ local                      0xDC   s      Local Time (or DROP; SK is UTC)
 │  └─ timer                      0x75   s      free-running elapsed timer/clock (NOT race countdown — see note 12)
@@ -297,7 +297,7 @@ Flat form (what the decoder emits):
 | 0x29 | Off Course | `bandg.steering.offCourse` | rad |
 | 0xAF | Autopilot Off Course | `bandg.steering.autopilot.offCourse` | rad |
 | 0x46 | Autopilot Speed Fixed | `bandg.steering.autopilot.fixedSpeed` | m/s |
-| 0x86 | Barometric Pressure Trend | `bandg.environment.pressureTrend` | Pa/s |
+| 0x86 | Barometric Pressure Trend | `bandg.environment.pressureTrend` | — (opaque) ¹⁵ |
 | 0xDC | Local Time | `bandg.time.local` | s |
 | 0x75 | Timer | `bandg.time.timer` | s |
 | 0x0C–0x17, 0x38–0x3B | Linear 1–16 | `bandg.sensors.linear.<n>` | — |
@@ -382,6 +382,17 @@ Flat form (what the decoder emits):
     `navigation.position` — decimal degrees, negative for S/W. Define the value structure
     (recommended `{"latitude": <deg>, "longitude": <deg>}`) so consumers stop parsing the raw
     ASCII themselves (fastnet2n2k's `process_position` does this today). See TBC #8.
+15. **Pressure trend (0x86):** a pressure *trend* is a rate/tendency, not an absolute
+    pressure — so the value is emitted **opaque** (identity, no unit); the `0x86` encoding is
+    unconfirmed (TBC). Signal K has **no standard** pressure-trend path (only
+    `environment.outside.pressure`, Pa); the community `signalk-barometer-trend` plugin computes
+    `environment.outside.pressure.trend.{tendency (string), severity (−4..+4)}` from pressure
+    history — a consumer wanting that would derive it, not read it from 0x86 directly.
+
+**Unmapped-but-decodable channels:** a channel we can decode but have no mapping for is emitted
+under `bandg.unknown.0x<id>` (raw value, no unit) rather than dropped — so decodable data is never
+silently lost. This covers the Linear/Remote user channels and any unrecognised channel id. Dropped
+(protocol/diagnostic) and collapsed (redundant-variant) channels are still omitted.
 
 ## Collapsed / dropped duplicate channels
 

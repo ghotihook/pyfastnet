@@ -121,7 +121,7 @@ VENDOR = {
     0x29: ("bandg.steering.offCourse", _deg),
     0xAF: ("bandg.steering.autopilot.offCourse", _deg),
     0x46: ("bandg.steering.autopilot.fixedSpeed", _kn),
-    0x86: ("bandg.environment.pressureTrend", _hpa),
+    0x86: ("bandg.environment.pressureTrend", _id),   # rate/tendency, encoding TBC — opaque
     0xDC: ("bandg.time.local", _id),
     0x75: ("bandg.time.timer", _id),
 }
@@ -211,7 +211,7 @@ def _disposition(cid):
         return f"→ {COLLAPSED[cid]}", "", "collapsed"
     if cid in DROP:
         return "—", "", "drop"
-    return "—", "", "unmapped"
+    return f"bandg.unknown.0x{cid:02X}", "", "unknown"
 
 
 def channel_map():
@@ -282,9 +282,10 @@ def parse_position(ascii_text):
 def project(decoded_frame, battery_id="house"):
     """Project a decoded frame (from decode_frame/ascii/light) → {signalk_path: value}.
 
-    Returns SI floats / enum strings / position dicts / None. Unmapped or dropped
-    channels are omitted. Layout-routed bearings pick Magnetic vs True from the
-    decoded layout byte.
+    Returns SI floats / enum strings / position dicts / None. Dropped and collapsed
+    channels are omitted; a channel we could decode but have no mapping for is kept
+    under ``bandg.unknown.0x<id>`` (raw value) so decodable data is never silently
+    lost. Layout-routed bearings pick Magnetic vs True from the decoded layout byte.
     """
     command = decoded_frame.get("command")
     values = decoded_frame.get("values", {})
@@ -302,7 +303,7 @@ def project(decoded_frame, battery_id="house"):
     for entry in values.values():
         cid = _cid(entry)
         value = entry.get("value")
-        if cid is None or cid in DROP:
+        if cid is None or cid in DROP or cid in COLLAPSED:
             continue
 
         # Depth fallback chain, resolved after the loop.
@@ -336,6 +337,11 @@ def project(decoded_frame, battery_id="house"):
         if cid in VENDOR:
             path, tf = VENDOR[cid]
             out[path] = tf(value) if value is not None else None
+            continue
+
+        # Unmapped but decodable — keep it (raw value) rather than drop it silently.
+        if value is not None:
+            out[f"bandg.unknown.0x{cid:02X}"] = value
 
     # Resolve depth by priority: metres → feet → fathoms.
     for cid, tf in DEPTH:

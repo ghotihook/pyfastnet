@@ -135,6 +135,26 @@ def test_vendor_path():
     assert "bandg.wind.upwash" in out
 
 
+def test_unmapped_channel_emitted_as_unknown():
+    out = sk.project(_frame("0x0C", 123.0))            # Linear 5 — in CHANNEL_LOOKUP, unmapped
+    assert out == {"bandg.unknown.0x0C": 123.0}
+
+
+def test_unknown_channel_id_emitted():
+    out = sk.project(_frame("0xC4", 42.0))             # id not in CHANNEL_LOOKUP
+    assert out == {"bandg.unknown.0xC4": 42.0}
+
+
+def test_collapsed_channel_not_unknown():
+    out = sk.project(_frame("0x1C", 70.0))             # Air Temp °F — collapsed, must be dropped
+    assert out == {}
+
+
+def test_unknown_skips_none_value():
+    out = sk.project(_frame("0xC5", None))             # unmapped, no value → nothing
+    assert out == {}
+
+
 # ── end-to-end against a real decoded frame ───────────────────────────────────
 def test_real_heel_frame_end_to_end():
     # Heel-to-port frame (value -20.4°) from tests/test_heel_trim.py

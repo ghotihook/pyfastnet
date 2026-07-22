@@ -10,18 +10,18 @@ This is the authoritative map, derived from the projection tables so it stays in
 |----|----------|---------------|------|------|
 | 0x00 | Node Reset | `—` |  | drop |
 | 0x0B | Rudder Angle | `steering.rudderAngle` | rad | standard |
-| 0x0C | Linear 5 | `—` |  | unmapped |
-| 0x0D | Linear 6 | `—` |  | unmapped |
-| 0x0E | Linear 7 | `—` |  | unmapped |
-| 0x0F | Linear 8 | `—` |  | unmapped |
-| 0x10 | Linear 9 | `—` |  | unmapped |
-| 0x11 | Linear 10 | `—` |  | unmapped |
-| 0x12 | Linear 11 | `—` |  | unmapped |
-| 0x13 | Linear 12 | `—` |  | unmapped |
-| 0x14 | Linear 13 | `—` |  | unmapped |
-| 0x15 | Linear 14 | `—` |  | unmapped |
-| 0x16 | Linear 15 | `—` |  | unmapped |
-| 0x17 | Linear 16 | `—` |  | unmapped |
+| 0x0C | Linear 5 | `bandg.unknown.0x0C` |  | unknown |
+| 0x0D | Linear 6 | `bandg.unknown.0x0D` |  | unknown |
+| 0x0E | Linear 7 | `bandg.unknown.0x0E` |  | unknown |
+| 0x0F | Linear 8 | `bandg.unknown.0x0F` |  | unknown |
+| 0x10 | Linear 9 | `bandg.unknown.0x10` |  | unknown |
+| 0x11 | Linear 10 | `bandg.unknown.0x11` |  | unknown |
+| 0x12 | Linear 11 | `bandg.unknown.0x12` |  | unknown |
+| 0x13 | Linear 12 | `bandg.unknown.0x13` |  | unknown |
+| 0x14 | Linear 13 | `bandg.unknown.0x14` |  | unknown |
+| 0x15 | Linear 14 | `bandg.unknown.0x15` |  | unknown |
+| 0x16 | Linear 15 | `bandg.unknown.0x16` |  | unknown |
+| 0x17 | Linear 16 | `bandg.unknown.0x17` |  | unknown |
 | 0x1C | Air Temperature (°F) | `→ environment.outside.temperature` |  | collapsed |
 | 0x1D | Air Temperature (°C) | `environment.outside.temperature` | K | standard |
 | 0x1E | Sea Temperature (°F) | `→ environment.water.temperature` |  | collapsed |
@@ -34,10 +34,10 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0x35 | Optimum Wind Angle | `bandg.performance.optimumWindAngle` | rad | vendor |
 | 0x36 | Depth Sounder Receiver Gain | `—` |  | drop |
 | 0x37 | Depth Sounder Noise | `—` |  | drop |
-| 0x38 | Linear 1 | `—` |  | unmapped |
-| 0x39 | Linear 2 | `—` |  | unmapped |
-| 0x3A | Linear 3 | `—` |  | unmapped |
-| 0x3B | Linear 4 | `—` |  | unmapped |
+| 0x38 | Linear 1 | `bandg.unknown.0x38` |  | unknown |
+| 0x39 | Linear 2 | `bandg.unknown.0x39` |  | unknown |
+| 0x3A | Linear 3 | `bandg.unknown.0x3A` |  | unknown |
+| 0x3B | Linear 4 | `bandg.unknown.0x3B` |  | unknown |
 | 0x3C | Rate Motion | `bandg.motion.rate` | ? | vendor |
 | 0x41 | Boatspeed (Knots) | `navigation.speedThroughWater` | m/s | standard |
 | 0x42 | Boatspeed (Raw) | `bandg.navigation.rawSpeedThroughWater` |  | vendor |
@@ -75,7 +75,7 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0x83 | Tidal Drift | `environment.current.drift` | m/s | standard |
 | 0x84 | Tidal Set | `environment.current.set{Magnetic,True}` | rad | routed(M/T) |
 | 0x85 | Upwash | `bandg.wind.upwash` | rad | vendor |
-| 0x86 | Barometric Pressure Trend | `bandg.environment.pressureTrend` | Pa | vendor |
+| 0x86 | Barometric Pressure Trend | `bandg.environment.pressureTrend` |  | vendor |
 | 0x87 | Barometric Pressure | `environment.outside.pressure` | Pa | standard |
 | 0x8D | Battery Volts | `electrical.batteries.{id}.voltage` | V | standard |
 | 0x9A | Heading on Next Tack | `performance.tackMagnetic` | rad | standard |
@@ -93,7 +93,7 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0xCF | Trip Log (NM) | `navigation.trip.log` | m | standard |
 | 0xD3 | Dead Reckoning Course | `bandg.navigation.deadReckoning.course` | rad | vendor |
 | 0xDC | Local Time | `bandg.time.local` | s | vendor |
-| 0xDD | UTC Time | `—` |  | unmapped |
+| 0xDD | UTC Time | `bandg.unknown.0xDD` |  | unknown |
 | 0xE0 | Bearing Wpt. to Wpt. (True) | `navigation.courseGreatCircle.bearingTrackTrue` | rad | standard |
 | 0xE1 | Bearing Wpt. to Wpt. (Mag) | `navigation.courseGreatCircle.bearingTrackMagnetic` | rad | standard |
 | 0xE2 | Layline Distance | `navigation.racing.layline.distance` | m | standard |
@@ -109,16 +109,16 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0xEC | VMG to Waypoint (VMC) | `navigation.courseGreatCircle.nextPoint.velocityMadeGood` | m/s | standard |
 | 0xED | Time to Waypoint | `navigation.courseGreatCircle.nextPoint.timeToGo` | s | standard |
 | 0xEE | Cross Track Error | `navigation.courseGreatCircle.crossTrackError` | m | standard |
-| 0xEF | Remote 0 | `—` |  | unmapped |
-| 0xF0 | Remote 1 | `—` |  | unmapped |
-| 0xF1 | Remote 2 | `—` |  | unmapped |
-| 0xF2 | Remote 3 | `—` |  | unmapped |
-| 0xF3 | Remote 4 | `—` |  | unmapped |
-| 0xF4 | Remote 5 | `—` |  | unmapped |
-| 0xF5 | Remote 6 | `—` |  | unmapped |
-| 0xF6 | Remote 7 | `—` |  | unmapped |
-| 0xF7 | Remote 8 | `—` |  | unmapped |
-| 0xF8 | Remote 9 | `—` |  | unmapped |
+| 0xEF | Remote 0 | `bandg.unknown.0xEF` |  | unknown |
+| 0xF0 | Remote 1 | `bandg.unknown.0xF0` |  | unknown |
+| 0xF1 | Remote 2 | `bandg.unknown.0xF1` |  | unknown |
+| 0xF2 | Remote 3 | `bandg.unknown.0xF2` |  | unknown |
+| 0xF3 | Remote 4 | `bandg.unknown.0xF3` |  | unknown |
+| 0xF4 | Remote 5 | `bandg.unknown.0xF4` |  | unknown |
+| 0xF5 | Remote 6 | `bandg.unknown.0xF5` |  | unknown |
+| 0xF6 | Remote 7 | `bandg.unknown.0xF6` |  | unknown |
+| 0xF7 | Remote 8 | `bandg.unknown.0xF7` |  | unknown |
+| 0xF8 | Remote 9 | `bandg.unknown.0xF8` |  | unknown |
 | 0xF9 | Course to Sail | `bandg.performance.courseToSail` | rad | vendor |
 | 0xFA | Next Waypoint Distance | `navigation.courseGreatCircle.nextPoint.distance` | m | standard |
 | 0xFB | Time to Layline | `navigation.racing.layline.time` | s | standard |
