@@ -2,8 +2,13 @@
 
 A Python library for decoding the **FastNet** protocol used by B&G Hydra / H2000
 instruments. Feed it raw bytes from the Fastnet bus and it handles
-synchronisation, checksum validation, and decoding — returning structured
-instrument data ready for further processing.
+synchronisation, checksum validation, and decoding — returning instrument data as
+**Signal K paths in SI units**, ready for further processing.
+
+> **v3.0 changes the output format.** Decoded frames are now `{signalk_path:
+> SI_value}` (e.g. `navigation.speedThroughWater = 3.6`) instead of the v2
+> name-keyed `{value, display_text, layout}` dicts. See **Output format** below.
+> The full v2-style decode is still available via `FrameBuffer(project=False)`.
 
 Developed for personal use and published for general interest. Runs on Raspberry
 Pi, macOS, or Linux.
@@ -39,8 +44,8 @@ try:
         fb.get_complete_frames()
         while not fb.frame_queue.empty():
             frame = fb.frame_queue.get()
-            for channel, decoded in frame["values"].items():
-                print(channel, decoded)
+            for path, value in frame["values"].items():
+                print(path, value)   # e.g. navigation.speedThroughWater 3.6
 finally:
     ser.close()
 ```
@@ -56,7 +61,7 @@ data to end up:
 
 | Project | What it does | Use it when |
 |---|---|---|
-| **pyfastnet** *(this library)* | **Decoder.** Turns raw Fastnet bytes into named instrument channels. | You're writing your own Python and want the decoded data. |
+| **pyfastnet** *(this library)* | **Decoder.** Turns raw Fastnet bytes into Signal K paths in SI units. | You're writing your own Python and want the decoded data. |
 | [fastnet2ip](https://github.com/ghotihook/fastnet2ip) | **Serial → network.** Broadcasts decoded data over UDP as NMEA 0183 or NMEA 2000 (over IP). | Feeding Signal K, OpenCPN, or a plotter over WiFi / Ethernet. |
 | [fastnet2n2k](https://github.com/ghotihook/fastnet2n2k) | **Serial → physical NMEA 2000 bus.** Transmits PGNs onto a CAN backbone via SocketCAN. | Wiring into a real NMEA 2000 network / chartplotter. |
 
@@ -74,7 +79,8 @@ port, a live data store, rate limiting, and output for you.
 ## Output format
 
 Each decoded frame is a dict with `to_address`, `from_address`, `command`, and
-`values`. Each entry in `values` is keyed by channel name:
+`values`. `values` maps **Signal K paths to SI values** — one canonical entry per
+physical quantity:
 
 ```python
 {
@@ -82,68 +88,56 @@ Each decoded frame is a dict with `to_address`, `from_address`, `command`, and
   "from_address": "Normal CPU (Wind Board in H2000)",
   "command":      "Broadcast",
   "values": {
-    "Apparent Wind Speed (Knots)": {
-      "channel_id":   "0x4D",
-      "value":        7.0,
-      "display_text": "7.0",
-      "layout":       None,
-    },
-    "Apparent Wind Angle": {
-      "channel_id":   "0x51",
-      "value":        -6.0,
-      "display_text": "-6.0",
-      "layout":       "-[data]",
-    },
-    "True Wind Direction": {
-      "channel_id":   "0x6D",
-      "value":        213.0,
-      "display_text": "213.0°M",
-      "layout":       "°M",
-    },
+    "environment.wind.speedApparent":     4.6,    # m/s
+    "environment.wind.angleApparent":     0.419,  # radians
+    "environment.wind.directionMagnetic": 1.239,  # radians
+    "navigation.speedThroughWater":       3.19,   # m/s
   }
 }
 ```
 
-### Position (LatLon) frames
+Units follow the Signal K spec: angles in **radians**, speed in **m/s**, distance
+in **metres**, temperature in **Kelvin**, pressure in **Pascals**. A value is a
+`float` (SI), a `str` enum (e.g. `steering.autopilot.state` → `"standby"`), a
+position object, or `None` when unavailable.
 
-Position frames (command `LatLon`) appear under the `"LatLon"` key. The raw
-coordinate string (`DDMM.mmm` with hemisphere letters) is carried in
-`display_text`; `value` is `None`. The originating source's marker byte is
-preserved in `channel_id` (e.g. `0x47`, `0x4E`) but does not affect the key:
+Redundant unit-variant channels the bus sends (feet/fathoms depth, knots wind, °F)
+are collapsed to one canonical path. B&G-proprietary channels with no standard
+Signal K path are emitted under a `bandg.*` namespace.
+
+### Position
+
+Position frames are emitted as `navigation.position`, a decimal-degree object
+(negative for S / W):
 
 ```python
-"LatLon": {
-    "channel_id":   "0x4E",
-    "value":        None,
-    "display_text": "3352.450S15113.920E",
-    "layout":       None,
-}
+"navigation.position": {"latitude": -33.8742, "longitude": 151.2320}
 ```
 
-### Layout field
+### True vs Magnetic
 
-The `layout` field describes the indicator symbol shown on the physical display
-around the numeric value. It is the **only** place True/Magnetic, port/starboard
-sign, and similar context is carried — the raw stream contains no magnetic
-variation or deviation.
+The reference is carried by the **path**, not a separate field:
+`navigation.headingMagnetic` vs `navigation.headingTrue`,
+`environment.wind.directionMagnetic` vs `directionTrue`,
+`environment.current.setMagnetic` vs `setTrue`. The decoder selects the right path
+from the display's indicator symbol at decode time. (The raw stream carries no
+magnetic variation or deviation, so it cannot convert between the two.)
 
-| `layout` | Meaning | Sign |
-|---|---|---|
-| `None` | No indicator symbol | positive |
-| `"[data]="` | `=` after value (starboard) | positive |
-| `"=[data]"` | `=` before value (port) | negative |
-| `"[data]-"` | `-` after value (starboard) | positive |
-| `"-[data]"` | `-` before value (port) | negative |
-| `"H[data]"` | `H` prefix — heading | positive |
-| `"°M"` | Magnetic bearing suffix | positive |
-| `"u[data]"` | `u` prefix — upwind (VMG) | positive |
-| `"d[data]"` | `d` prefix — downwind (VMG) | positive |
-| `"L[data]"` | `L` before — leeway port | negative |
-| `"[data]L"` | `L` after — AP compass target | positive |
-| `"[data]°C"` | Celsius suffix | positive |
-| `"[data]°F"` | Fahrenheit suffix | positive |
-| `"[data]z"` / `"z[data]"` | Dog-leg symbol — AP off course | positive |
-| `"TBC"` | Symbol seen but not yet identified | positive |
+### Complete (rich) decode
+
+`FrameBuffer(project=False)` queues the full internal decode instead of the Signal K
+projection. Each value is then a dict — `value`, `display_text`, `layout`,
+`channel_id` — keyed by human-readable channel name (the v2 format). Useful for
+debugging and reverse-engineering; `display_text` and `layout` are not exposed in
+the default Signal K output.
+
+You can also project a single decoded frame yourself:
+
+```python
+from fastnet_decoder import decode_frame, project
+rich = decode_frame(raw_frame_bytes)      # complete decode
+si = project(rich)                        # {signalk_path: SI_value}
+```
 
 ### Debug API
 
