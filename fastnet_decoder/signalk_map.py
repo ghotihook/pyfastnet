@@ -131,6 +131,49 @@ _AP_MODE_BY_LOW = {0x01: "auto", 0x04: "wind", 0x13: "route", 0x02: "directContr
 DROP = {0x00, 0x50, 0x68, 0x6A, 0x36, 0x37, 0xC9}
 
 
+# ── Per-path SI units (for display / introspection) ───────────────────────────
+_UNIT_BY_TF = {_kn: "m/s", _nm: "m", _deg: "rad", _c2k: "K", _hpa: "Pa", _pct: "ratio"}
+# _id is identity, so its unit depends on the quantity — resolve per path.
+_ID_UNITS = {
+    "environment.wind.speedApparent": "m/s",
+    "environment.wind.speedTrue": "m/s",
+    "environment.depth.belowTransducer": "m",
+    "navigation.courseGreatCircle.nextPoint.timeToGo": "s",
+    "navigation.racing.layline.time": "s",
+    "bandg.time.local": "s",
+    "bandg.time.timer": "s",
+    "bandg.motion.rate": "?",
+    "bandg.performance.headLiftTrend": "",
+}
+
+
+def _unit_for_tf(path, tf):
+    return _ID_UNITS.get(path, "") if tf is _id else _UNIT_BY_TF.get(tf, "")
+
+
+PATH_UNITS = {}
+for _cid, (_p, _tf) in STANDARD.items():
+    if "{id}" not in _p:               # battery path resolved at runtime — see unit_for()
+        PATH_UNITS[_p] = _unit_for_tf(_p, _tf)
+PATH_UNITS[DEPTH_PATH] = "m"
+for _cid, (_m, _t, _tf) in _ROUTED.items():
+    PATH_UNITS[_m] = PATH_UNITS[_t] = "rad"
+for _cid, (_p, _tf) in VENDOR.items():
+    PATH_UNITS[_p] = _unit_for_tf(_p, _tf)
+PATH_UNITS["navigation.position"] = "deg"
+PATH_UNITS["steering.autopilot.state"] = "enum"
+
+
+def unit_for(path):
+    """SI unit string for a Signal K path emitted by project(), or "" if unknown."""
+    u = PATH_UNITS.get(path)
+    if u is not None:
+        return u
+    if path.startswith("electrical.batteries.") and path.endswith(".voltage"):
+        return "V"
+    return ""
+
+
 def _cid(entry):
     """Parse a decoded value's channel_id ('0xC1') to int, or None."""
     raw = entry.get("channel_id")
