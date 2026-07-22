@@ -96,6 +96,12 @@ VENDOR = {
     0x57: ("bandg.wind.measuredSpeed", _kn),
     0x5A: ("bandg.wind.measuredAngle", _deg),
     0x85: ("bandg.wind.upwash", _deg),
+    # Raw (pre-calibration) sensor values — identity, kept as the decoder produces
+    # them so they can feed B&G proprietary raw PGNs (opaque counts, no SI unit).
+    0x4E: ("bandg.wind.rawSpeedApparent", _id),
+    0x52: ("bandg.wind.rawAngleApparent", _id),
+    0x42: ("bandg.navigation.rawSpeedThroughWater", _id),
+    0x4A: ("bandg.navigation.rawHeading", _id),
     0x9C: ("bandg.mast.rotation", _deg),
     0x9D: ("bandg.mast.windAngle", _deg),
     0x27: ("bandg.performance.headLiftTrend", _id),      # TBC #6: type

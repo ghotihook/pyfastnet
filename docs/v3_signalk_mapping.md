@@ -214,7 +214,9 @@ bandg
 ├─ wind
 │  ├─ measuredSpeed              0x57   m/s    masthead speed pre-calibration
 │  ├─ measuredAngle              0x5A   rad    masthead angle pre-calibration
-│  └─ upwash                     0x85   rad    upwash correction angle
+│  ├─ upwash                     0x85   rad    upwash correction angle
+│  ├─ rawSpeedApparent           0x4E   —      raw sensor count (opaque, identity)
+│  └─ rawAngleApparent           0x52   —      raw sensor count (opaque, identity)
 ├─ mast
 │  ├─ rotation                   0x9C   rad    Mast Angle (rotation)
 │  └─ windAngle                  0x9D   rad    Wind Angle to the Mast
@@ -231,6 +233,8 @@ bandg
 ├─ navigation
 │  ├─ speedThroughWaterAverage   0x64   m/s    Average Speed
 │  ├─ courseThroughWater         0x69   rad    Course (HDG + Leeway)
+│  ├─ rawSpeedThroughWater       0x42   —      raw sensor count (opaque, identity)
+│  ├─ rawHeading                 0x4A   —      raw sensor count (opaque, identity)
 │  └─ deadReckoning
 │     ├─ distance                0x81   m
 │     └─ course                  0xD3   rad
@@ -263,6 +267,8 @@ Flat form (what the decoder emits):
 | 0x57 | Measured Wind Speed | `bandg.wind.measuredSpeed` | m/s |
 | 0x5A | Measured Wind Angle | `bandg.wind.measuredAngle` | rad |
 | 0x85 | Upwash | `bandg.wind.upwash` | rad |
+| 0x4E | Apparent Wind Speed (Raw) | `bandg.wind.rawSpeedApparent` | — (opaque) |
+| 0x52 | Apparent Wind Angle (Raw) | `bandg.wind.rawAngleApparent` | — (opaque) |
 | 0x9C | Mast Angle | `bandg.mast.rotation` | rad |
 | 0x9D | Wind Angle to the Mast | `bandg.mast.windAngle` | rad |
 | 0x27 | Head/Lift Trend | `bandg.performance.headLiftTrend` | enum/signed |
@@ -275,6 +281,8 @@ Flat form (what the decoder emits):
 | 0x70 | Next Leg Target Boat Speed | `bandg.performance.nextLeg.targetSpeed` | m/s |
 | 0x64 | Average Speed | `bandg.navigation.speedThroughWaterAverage` | m/s |
 | 0x69 | Course (HDG + Leeway) | `bandg.navigation.courseThroughWater` | rad |
+| 0x42 | Boatspeed (Raw) | `bandg.navigation.rawSpeedThroughWater` | — (opaque) |
+| 0x4A | Heading (Raw) | `bandg.navigation.rawHeading` | — (opaque) |
 | 0x81 | Dead Reckoning Distance | `bandg.navigation.deadReckoning.distance` | m |
 | 0xD3 | Dead Reckoning Course | `bandg.navigation.deadReckoning.course` | rad |
 | 0x3C | Rate Motion | `bandg.motion.rate` | rad/s? |
@@ -377,11 +385,7 @@ unit or a raw pre-calibration form. Dropped entirely in v3:
 |----|------|---------------|
 | 0x1C | Air Temperature (°F) | 0x1D → `environment.outside.temperature` |
 | 0x1E | Sea Temperature (°F) | 0x1F → `environment.water.temperature` |
-| 0x42 | Boatspeed (Raw) | 0x41 → `navigation.speedThroughWater` |
-| 0x4A | Heading (Raw) | 0x49 → `navigation.headingMagnetic` |
 | 0x4D | Apparent Wind Speed (Knots) | 0x4F → `environment.wind.speedApparent` (or convert from this if finer) |
-| 0x4E | Apparent Wind Speed (Raw) | 0x4F |
-| 0x52 | Apparent Wind Angle (Raw) | 0x51 → `environment.wind.angleApparent` |
 | 0x55 | True Wind Speed (Knots) | 0x56 → `environment.wind.speedTrue` (or convert from this if finer) |
 | 0x65 | Average Speed (raw) | 0x64 (itself VENDOR) |
 | 0xC2 | Depth (Feet) | 0xC1 → `environment.depth.belowTransducer` (but finer — see note 4) |
