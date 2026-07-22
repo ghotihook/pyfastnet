@@ -3,8 +3,12 @@ from fastnet_decoder.frame_buffer import FrameBuffer
 
 
 def _decode(hex_str):
-    """Feed a raw frame through the buffer and return the queued decoded frame."""
-    fb = FrameBuffer()
+    """Feed a raw frame through the buffer and return the queued decoded frame.
+
+    Uses project=False: Backlight (0xC9) is dropped from the v3 Signal K projection,
+    so this exercises the retained complete (rich) decode.
+    """
+    fb = FrameBuffer(project=False)
     fb.add_to_buffer(bytes.fromhex(hex_str))
     fb.get_complete_frames()
     assert not fb.frame_queue.empty(), f"No frame queued for {hex_str}"

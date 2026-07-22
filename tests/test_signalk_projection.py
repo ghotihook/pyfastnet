@@ -4,6 +4,7 @@ import math
 
 from fastnet_decoder import signalk_map as sk
 from fastnet_decoder.decode_fastnet import decode_frame
+from fastnet_decoder.frame_buffer import FrameBuffer
 
 
 def _frame(cid_hex, value, name="X", layout=None, command="Broadcast", display=None):
@@ -142,3 +143,29 @@ def test_real_heel_frame_end_to_end():
     out = sk.project(decoded)
     assert math.isclose(out["navigation.attitude.roll"], math.radians(-20.4), rel_tol=1e-3)
     assert "navigation.attitude.pitch" in out          # Fore/Aft Trim in same frame
+
+
+# ── cut-over: FrameBuffer emits the projection by default ─────────────────────
+def test_framebuffer_emits_paths_by_default():
+    fb = FrameBuffer()   # project=True
+    fb.add_to_buffer(bytes.fromhex("ff051401e78d8105263b3101fa344700f300cc9b4700a000099b"))
+    fb.get_complete_frames()
+    fr = fb.frame_queue.get_nowait()
+    assert "navigation.attitude.roll" in fr["values"]
+    assert math.isclose(fr["values"]["navigation.attitude.roll"], math.radians(-20.4), rel_tol=1e-3)
+
+
+def test_framebuffer_project_false_keeps_rich():
+    fb = FrameBuffer(project=False)
+    fb.add_to_buffer(bytes.fromhex("ff051401e78d8105263b3101fa344700f300cc9b4700a000099b"))
+    fb.get_complete_frames()
+    fr = fb.frame_queue.get_nowait()
+    assert "Heel Angle" in fr["values"]                # rich, name-keyed
+    assert "display_text" in fr["values"]["Heel Angle"]
+
+
+def test_framebuffer_drops_backlight():
+    fb = FrameBuffer()
+    fb.add_to_buffer(bytes.fromhex("ff5001c9e704fc"))
+    fb.get_complete_frames()
+    assert fb.frame_queue.empty()                      # 0xC9 dropped from projection

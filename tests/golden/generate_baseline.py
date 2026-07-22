@@ -26,7 +26,7 @@ OUT = Path(__file__).resolve().parent / "v2_baseline.json"
 
 
 def decode_file(path):
-    fb = FrameBuffer()
+    fb = FrameBuffer(project=False)   # rich complete-decode, not the v3 projection
     frames = []
     for line in path.read_text().splitlines():
         line = line.strip()

@@ -2,6 +2,7 @@ import logging
 from .utils import calculate_checksum
 from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
 from .decode_fastnet import decode_frame, decode_ascii_frame, decode_light_frame, probe_frame
+from . import signalk_map
 from .logger import logger
 from queue import Queue, Full
 
@@ -17,10 +18,13 @@ class FrameBuffer:
         3. Pull decoded frames from frame_queue
     """
 
-    def __init__(self, max_buffer_size=8192, max_queue_size=1000):
+    def __init__(self, max_buffer_size=8192, max_queue_size=1000, project=True):
         self.buffer = bytearray()
         self.max_buffer_size = max_buffer_size
         self.frame_queue = Queue(maxsize=max_queue_size)
+        # v3: queue the {signalk_path: SI_value} projection by default. project=False
+        # queues the complete (rich) decode instead — for the golden guard / debugging.
+        self.project = project
 
     def add_to_buffer(self, new_data):
         if not isinstance(new_data, (bytes, bytearray)):
@@ -103,20 +107,37 @@ class FrameBuffer:
             probe_frame(frame)
             return
 
-        if decoded_frame and "values" in decoded_frame:
-            try:
-                self.frame_queue.put_nowait(decoded_frame)
-                if logger.isEnabledFor(logging.DEBUG):
-                    channel_names = list(decoded_frame["values"].keys())
-                    names_str = ", ".join(channel_names[:4])
-                    if len(channel_names) > 4:
-                        names_str += f", +{len(channel_names) - 4} more"
-                    logger.debug(f"  QUEUE {len(channel_names)} channel(s)  [{names_str}]")
-            except Full:
-                logger.warning("Frame queue full, dropping frame.")
-        else:
+        if not (decoded_frame and "values" in decoded_frame):
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"  QUEUE fail    decode error  [{frame.hex()}]")
+            return
+
+        if self.project:
+            values = signalk_map.project(decoded_frame)
+            if not values:
+                # every channel dropped / unmapped (e.g. Backlight, protocol) — nothing to emit
+                if logger.isEnabledFor(logging.DEBUG):
+                    logger.debug(f"  QUEUE skip    no mapped paths  cmd={command_name}")
+                return
+            queued = {
+                "to_address":   decoded_frame.get("to_address"),
+                "from_address": decoded_frame.get("from_address"),
+                "command":      decoded_frame.get("command"),
+                "values":       values,
+            }
+        else:
+            queued = decoded_frame
+
+        try:
+            self.frame_queue.put_nowait(queued)
+            if logger.isEnabledFor(logging.DEBUG):
+                keys = list(queued["values"].keys())
+                names_str = ", ".join(keys[:4])
+                if len(keys) > 4:
+                    names_str += f", +{len(keys) - 4} more"
+                logger.debug(f"  QUEUE {len(keys)} value(s)  [{names_str}]")
+        except Full:
+            logger.warning("Frame queue full, dropping frame.")
 
     def get_buffer_size(self):
         return len(self.buffer)
