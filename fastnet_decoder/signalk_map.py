@@ -180,6 +180,58 @@ def unit_for(path):
     return ""
 
 
+# ── Master reference: B&G channel -> name -> Signal K path ─────────────────────
+# Channels collapsed onto a canonical sibling (redundant unit/format variants).
+COLLAPSED = {
+    0x1C: "environment.outside.temperature",            # Air Temp °F -> °C
+    0x1E: "environment.water.temperature",              # Sea Temp °F -> °C
+    0x4D: "environment.wind.speedApparent",             # AWS knots -> m/s
+    0x55: "environment.wind.speedTrue",                 # TWS knots -> m/s
+    0x65: "bandg.navigation.speedThroughWaterAverage",  # Average Speed raw -> 0x64
+}
+
+
+def _disposition(cid):
+    """(path, unit, kind) for a channel id, resolved against the projection maps."""
+    if cid in _ROUTED:
+        m, t, _ = _ROUTED[cid]
+        return f"{m} | {t}", "rad", "routed(M/T)"
+    if cid in (0xC1, 0xC2, 0xC3):
+        return DEPTH_PATH, "m", "standard(depth fallback)"
+    if cid == 0xB5:
+        return "steering.autopilot.state", "enum", "standard"
+    if cid in STANDARD:
+        p = STANDARD[cid][0]
+        return p, unit_for(p.format(id="house")), "standard"
+    if cid in VENDOR:
+        p = VENDOR[cid][0]
+        return p, unit_for(p), "vendor"
+    if cid in COLLAPSED:
+        return f"→ {COLLAPSED[cid]}", "", "collapsed"
+    if cid in DROP:
+        return "—", "", "drop"
+    return "—", "", "unmapped"
+
+
+def channel_map():
+    """Master reference table: ``{channel_id: {"name","path","unit","kind"}}`` for
+    every B&G channel in ``CHANNEL_LOOKUP``.
+
+    Derived from the projection maps (``STANDARD``/``DEPTH``/``_ROUTED``/``VENDOR``/
+    ``COLLAPSED``/``DROP``), so it is always in step with what ``project()`` emits —
+    treat this as the authoritative B&G-channel → Signal K-path reference.
+
+    Note: position (``navigation.position``) and backlight come from *command* frames
+    (LatLon / Light Intensity), not channel ids, so they are not listed here.
+    """
+    from .mappings import CHANNEL_LOOKUP
+    out = {}
+    for cid, bng in sorted(CHANNEL_LOOKUP.items()):
+        path, unit, kind = _disposition(cid)
+        out[cid] = {"name": bng, "path": path, "unit": unit, "kind": kind}
+    return out
+
+
 def _cid(entry):
     """Parse a decoded value's channel_id ('0xC1') to int, or None."""
     raw = entry.get("channel_id")

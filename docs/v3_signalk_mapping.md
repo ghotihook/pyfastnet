@@ -2,8 +2,10 @@
 
 > **Status:** implemented in `fastnet_decoder/signalk_map.py` (the `STANDARD`, `DEPTH`,
 > `_ROUTED`, `VENDOR` maps + `project()` / `unit_for()`); shipped in pyfastnet 3.0.0.
-> The tables below are the design record and remain the reference for the mapping.
-> Items still marked TBC need live boat data before they can be finalised.
+> This doc is the **design record**. The **master channel table** (B&G number → name →
+> path → unit) is `channel_map()`, rendered in [`channel_map.md`](channel_map.md) —
+> derived from the code so it stays authoritative. Items still marked TBC need live
+> boat data before they can be finalised.
 
 > **Path validation:** all standard paths below verified against the Signal K
 > schema (SignalK/specification `master`, spec 1.7.0) on 2026-07-22. Units confirmed

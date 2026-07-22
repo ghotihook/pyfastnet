@@ -118,9 +118,18 @@ unit_for("environment.water.temperature")   # "K"
 unit_for("navigation.position")             # "deg"
 ```
 
-The complete mapping — every B&G channel id/name → Signal K path + unit, the
-`bandg.*` vendor namespace, layout-driven Magnetic/True routing, and the
-dropped/collapsed channels — is documented in
+The master reference — every B&G channel number → name → Signal K path + unit — is
+`channel_map()`, derived from the projection tables so it can't drift:
+
+```python
+from fastnet_decoder import channel_map
+channel_map()[0x41]
+# {'name': 'Boatspeed (Knots)', 'path': 'navigation.speedThroughWater',
+#  'unit': 'm/s', 'kind': 'standard'}
+```
+
+It is rendered as a table in [`docs/channel_map.md`](docs/channel_map.md). The design
+rationale, `bandg.*` namespace, Magnetic/True routing, and open TBCs are in
 [`docs/v3_signalk_mapping.md`](docs/v3_signalk_mapping.md).
 
 ### Position
