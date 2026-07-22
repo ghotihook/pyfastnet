@@ -43,7 +43,7 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0x42 | Boatspeed (Raw) | `bandg.navigation.rawSpeedThroughWater` |  | vendor |
 | 0x44 | Yaw rate | `navigation.rateOfTurn` | rad | standard |
 | 0x46 | Autopilot Speed Fixed (Knots) | `bandg.steering.autopilot.fixedSpeed` | m/s | vendor |
-| 0x49 | Heading | `navigation.headingMagnetic | navigation.headingTrue` | rad | routed(M/T) |
+| 0x49 | Heading | `navigation.heading{Magnetic,True}` | rad | routed(M/T) |
 | 0x4A | Heading (Raw) | `bandg.navigation.rawHeading` |  | vendor |
 | 0x4D | Apparent Wind Speed (Knots) | `→ environment.wind.speedApparent` |  | collapsed |
 | 0x4E | Apparent Wind Speed (Raw) | `bandg.wind.rawSpeedApparent` |  | vendor |
@@ -62,7 +62,7 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0x68 | Request for Data | `—` |  | drop |
 | 0x69 | Course (HDG + Leeway) | `bandg.navigation.courseThroughWater` | rad | vendor |
 | 0x6A | Act for Data | `—` |  | drop |
-| 0x6D | True Wind Direction | `environment.wind.directionMagnetic | environment.wind.directionTrue` | rad | routed(M/T) |
+| 0x6D | True Wind Direction | `environment.wind.direction{Magnetic,True}` | rad | routed(M/T) |
 | 0x6F | Next Leg Apparent Wind Angle | `bandg.performance.nextLeg.angleApparent` | rad | vendor |
 | 0x70 | Next Leg Target Boat Speed | `bandg.performance.nextLeg.targetSpeed` | m/s | vendor |
 | 0x71 | Next Leg Apparent Wind Speed | `bandg.performance.nextLeg.speedApparent` | m/s | vendor |
@@ -73,7 +73,7 @@ This is the authoritative map, derived from the projection tables so it stays in
 | 0x81 | Dead Reckoning Distance | `bandg.navigation.deadReckoning.distance` | m | vendor |
 | 0x82 | Leeway | `navigation.leewayAngle` | rad | standard |
 | 0x83 | Tidal Drift | `environment.current.drift` | m/s | standard |
-| 0x84 | Tidal Set | `environment.current.setMagnetic | environment.current.setTrue` | rad | routed(M/T) |
+| 0x84 | Tidal Set | `environment.current.set{Magnetic,True}` | rad | routed(M/T) |
 | 0x85 | Upwash | `bandg.wind.upwash` | rad | vendor |
 | 0x86 | Barometric Pressure Trend | `bandg.environment.pressureTrend` | Pa | vendor |
 | 0x87 | Barometric Pressure | `environment.outside.pressure` | Pa | standard |

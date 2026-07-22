@@ -194,8 +194,9 @@ COLLAPSED = {
 def _disposition(cid):
     """(path, unit, kind) for a channel id, resolved against the projection maps."""
     if cid in _ROUTED:
-        m, t, _ = _ROUTED[cid]
-        return f"{m} | {t}", "rad", "routed(M/T)"
+        m, _t, _ = _ROUTED[cid]
+        stem = m[:-len("Magnetic")]            # m ends with "Magnetic"
+        return f"{stem}{{Magnetic,True}}", "rad", "routed(M/T)"
     if cid in (0xC1, 0xC2, 0xC3):
         return DEPTH_PATH, "m", "standard(depth fallback)"
     if cid == 0xB5:
