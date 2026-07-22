@@ -15,6 +15,11 @@ logger.setLevel(DEFAULT_LOG_LEVEL)
 
 def set_log_level(level_name: str):
     """Sets the log level dynamically at runtime."""
-    level = getattr(logging, level_name.upper(), DEFAULT_LOG_LEVEL)
+    level = logging.getLevelName(level_name.upper())
+    if not isinstance(level, int):
+        logger.warning(
+            f"Unknown log level '{level_name}'; keeping current level."
+        )
+        return
     logger.setLevel(level)
     logger.info(f"Log level set to {level_name.upper()}.")

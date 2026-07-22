@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Replay all temp/*.txt raw log files through the FastNet decoder and report
-every occurrence where a segment lookup returns "?" (unknown layout/display code).
+every occurrence where a segment lookup returns "TBC" (unknown layout/display code).
 
 Covers:
   SEGMENT_A unknowns — formats 0x03, 0x07, 0x08  (layout indicator byte)

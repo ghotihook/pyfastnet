@@ -13,7 +13,8 @@ _DECIMAL_PLACES_MAP = {1: 0, 10: 1, 100: 2, 1000: 3}
 #   "[data]-"  →  value is positive, trailing minus means port/starboard convention
 #   "-[data]"  →  value is negative (subtract sign)
 #   "=[data]"  →  value is negative (equals sign variant)
-#   "H[data]"  →  "H" prefix, e.g. H045 for a heading
+#   "H[data]"  →  heel to port; H carries the sign, value stored negative (e.g. H20.4)
+#   "[data]H"  →  heel to starboard; value positive (e.g. 33.8H)
 #   "°M"       →  magnetic bearing, suffix added after value
 
 def _sign_from_layout(layout: str) -> int:
@@ -192,6 +193,8 @@ def decode_ascii_frame(frame: bytes) -> dict:
         command      = frame[3]
         body         = frame[5:-1]
 
+        # TBC: no len(body) guard here (unlike decode_frame/decode_light_frame) —
+        # a short/empty body raises IndexError and falls to the except below.
         channel_id   = body[0]
         # body[1] is a format byte — not used for ASCII frames
         data_bytes   = body[2:]
