@@ -103,7 +103,25 @@ position object, or `None` when unavailable.
 
 Redundant unit-variant channels the bus sends (feet/fathoms depth, knots wind, °F)
 are collapsed to one canonical path. B&G-proprietary channels with no standard
-Signal K path are emitted under a `bandg.*` namespace.
+Signal K path — including the pre-calibration `raw` sensor values — are emitted
+under a `bandg.*` namespace (e.g. `bandg.wind.rawAngleApparent`).
+
+### Units and the full path map
+
+Every emitted path has a canonical SI unit, available programmatically:
+
+```python
+from fastnet_decoder import unit_for
+unit_for("navigation.speedThroughWater")   # "m/s"
+unit_for("navigation.headingMagnetic")      # "rad"
+unit_for("environment.water.temperature")   # "K"
+unit_for("navigation.position")             # "deg"
+```
+
+The complete mapping — every B&G channel id/name → Signal K path + unit, the
+`bandg.*` vendor namespace, layout-driven Magnetic/True routing, and the
+dropped/collapsed channels — is documented in
+[`docs/v3_signalk_mapping.md`](docs/v3_signalk_mapping.md).
 
 ### Position
 

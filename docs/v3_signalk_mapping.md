@@ -1,4 +1,9 @@
-# v3 Output Spec — FastNet → Signal K mapping (PROPOSAL, not implemented)
+# v3 Output Spec — FastNet → Signal K mapping (IMPLEMENTED in 3.0.0)
+
+> **Status:** implemented in `fastnet_decoder/signalk_map.py` (the `STANDARD`, `DEPTH`,
+> `_ROUTED`, `VENDOR` maps + `project()` / `unit_for()`); shipped in pyfastnet 3.0.0.
+> The tables below are the design record and remain the reference for the mapping.
+> Items still marked TBC need live boat data before they can be finalised.
 
 > **Path validation:** all standard paths below verified against the Signal K
 > schema (SignalK/specification `master`, spec 1.7.0) on 2026-07-22. Units confirmed
@@ -6,10 +11,10 @@
 > has been moved to VENDOR. `performance.tackMagnetic` and the `...nextPoint.*` /
 > `performance.*` families were confirmed present.
 
-Target for a v3 rewrite: the decoder emits a flat map of **`{ signalk_path: SI_value }`**,
-one canonical entry per physical quantity, in the unit Signal K defines for that path.
-No `display_text`, no `layout`, no unit-variant duplicates. Delta/`$source`/timestamp
-wrapping is left to the consumer (fastnet2ip, fastnet2n2k).
+The decoder emits a flat map of **`{ signalk_path: SI_value }`**, one canonical entry per
+physical quantity, in the unit Signal K defines for that path. No `display_text`, no
+`layout`, no unit-variant duplicates. Delta/`$source`/timestamp wrapping is left to the
+consumer (fastnet2ip, fastnet2n2k).
 
 > **Scope note:** Signal K here is a *naming convention* only — a clean, self-describing,
 > SI-typed key scheme. This output is **not** meant to be injected straight into a Signal K
