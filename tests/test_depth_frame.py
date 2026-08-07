@@ -1,5 +1,5 @@
 import unittest
-from fastnet_decoder.decode_fastnet import decode_frame
+from fastnet_decoder import decode_frame
 
 
 class TestDepthFrame(unittest.TestCase):

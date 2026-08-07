@@ -3,7 +3,7 @@ import importlib.util
 from pathlib import Path
 
 from fastnet_decoder import channel_map
-from fastnet_decoder.mappings import CHANNEL_LOOKUP
+from fastnet_decoder.interpreter import CHANNEL_LOOKUP
 
 DOCS = Path(__file__).resolve().parents[1] / "docs"
 

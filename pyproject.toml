@@ -40,5 +40,8 @@ test = ["pytest>=7.0"]
 [tool.setuptools.packages.find]
 include = ["fastnet_decoder*"]
 
+[tool.setuptools.package-data]
+fastnet_decoder = ["data/*.json"]
+
 [tool.setuptools.dynamic]
 version = { attr = "fastnet_decoder.__version__" }
