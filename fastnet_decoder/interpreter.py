@@ -221,6 +221,20 @@ def decode_frame(frame: bytes) -> dict:
             decoded_value = decode_channel_value(channel_id, format_byte, data_bytes)
             decoded_data["values"][channel_name] = decoded_value
 
+            if decoded_value:
+                logger.debug(
+                    f"  CH  0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  "
+                    f"value={decoded_value['value']}  "
+                    f"display='{decoded_value['display_text']}'  "
+                    f"layout={decoded_value['layout']}"
+                )
+            else:
+                logger.debug(
+                    f"  CH  0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  (no decode)"
+                )
+
         return decoded_data
 
     except Exception as e:
@@ -251,13 +265,38 @@ def probe_frame(frame: bytes) -> None:
                 break
             channel_id = body[index]
             format_byte = body[index + 1]
+            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
             index += 2
             data_length = _FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
-            if data_length == 0 or index + data_length > len(body):
+            if data_length == 0:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  unknown format, stop  "
+                    f"remaining=[{body[index:].hex()}]"
+                )
+                break
+            if index + data_length > len(body):
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  incomplete  need={data_length}B  "
+                    f"have={len(body) - index}B  remaining=[{body[index:].hex()}]"
+                )
                 break
             data_bytes = body[index:index + data_length]
             index += data_length
-            decode_channel_value(channel_id, format_byte, data_bytes)
+            decoded = decode_channel_value(channel_id, format_byte, data_bytes)
+            if decoded:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  "
+                    f"value={decoded['value']}  display='{decoded['display_text']}'  "
+                    f"layout={decoded['layout']}"
+                )
+            else:
+                logger.debug(
+                    f"    PROBE 0x{channel_id:02X} {channel_name}  "
+                    f"fmt=0x{format_byte:02X}  data=[{data_bytes.hex()}]  (no decode)"
+                )
 
     except Exception as e:
         logger.debug(f"  PROBE error: {e}  [{frame.hex()}]")
