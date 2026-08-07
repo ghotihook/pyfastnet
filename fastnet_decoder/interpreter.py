@@ -75,13 +75,21 @@ SCHEMA = json.loads(_DATA_PATH.read_text(encoding="utf-8"))
 # helpers below are the one place that conversion happens.
 
 def _parse_hex(hex_string: str) -> int:
-    """Turn a hex string like '0x41' into the plain integer 65."""
+    """Turn a hex string like '0x41' into the plain integer 65.
+
+    Example:
+        _parse_hex("0x41") -> 65
+    """
     return int(hex_string, 16)
 
 
 def _hex_keyed_dict_to_int_keyed_dict(hex_keyed_dict: dict) -> dict:
     """Convert a dict whose keys are hex strings ('0x41') into an equivalent
     dict keyed by the plain integer (65). Used for every *_LOOKUP table below.
+
+    Example:
+        _hex_keyed_dict_to_int_keyed_dict({"0x01": "Low", "0x02": "Medium"})
+        -> {1: "Low", 2: "Medium"}
     """
     int_keyed_dict = {}
     for hex_key, value in hex_keyed_dict.items():
@@ -130,6 +138,10 @@ def _lookup_or_unknown(lookup_table: dict, key: int) -> str:
     Used everywhere this file looks up an address, command, or channel name -
     none of those tables are guaranteed to be complete, since this protocol is
     still being reverse-engineered, so every lookup needs a graceful fallback.
+
+    Example:
+        _lookup_or_unknown({0x01: "Broadcast"}, 0x01) -> "Broadcast"
+        _lookup_or_unknown({0x01: "Broadcast"}, 0x99) -> "Unknown (0x99)"
     """
     name = lookup_table.get(key)
     if name is not None:
@@ -160,6 +172,13 @@ def extract_bits(data_bytes: bytes, pieces) -> int:
         piece 1: (0xCC & 0x01) << 8  =  0  << 8  =  0
         piece 2: (0x29 & 0xFF) << 0  =  41 << 0  =  41
         combined (the two pieces OR'd together)   =  41
+
+    Example:
+        extract_bits(
+            bytes([0xCC, 0x29]),
+            [{"byte": 0, "mask": "0x01", "shiftLeft": 8},
+             {"byte": 1, "mask": "0xFF", "shiftLeft": 0}],
+        ) -> 41
     """
     combined_value = 0
     for piece in pieces:
@@ -177,6 +196,10 @@ def _layout_for(segment_code: int) -> str:
     this matches the original hand-written decoder's behaviour. None is
     reserved for the two confirmed-blank codes (0x00, 0x80), which really do
     mean "no indicator shown", not "unidentified".
+
+    Example:
+        _layout_for(0x66) -> "°M"
+        _layout_for(0x93) -> "TBC"   # not in SEGMENT_A - unidentified so far
     """
     return SEGMENT_A.get(segment_code, "TBC")
 
@@ -186,6 +209,10 @@ def _sign_for(layout: str) -> int:
     otherwise 1. Only a handful of tokens carry a negative sign (see
     fastnet.json's lookups.layoutSign) - everything else, including "TBC"
     and None, is treated as positive.
+
+    Example:
+        _sign_for("H[data]") -> -1
+        _sign_for("°M") -> 1
     """
     return _LAYOUT_SIGN.get(layout, 1)
 
@@ -207,6 +234,11 @@ def _render_display(layout, formatted_number: str) -> str:
         differently even though both mean "negative value" - it comes
         straight from how the original B&G displays show it, not from any
         general rule.
+
+    Example:
+        _render_display("°M", "41") -> "41°M"
+        _render_display("H[data]", "-20.4") -> "H20.4"
+        _render_display("L[data]", "-2.0") -> "L-2.0"
     """
     if layout is None:
         return formatted_number
@@ -241,6 +273,9 @@ def _split_autopilot_composite(raw: int):
     _override_autopilot_mode (below) and _autopilot_signalk_state (further
     down, used by project()) need to split the same number the same way, so
     this is shared between them rather than duplicated.
+
+    Example:
+        _split_autopilot_composite(0x5102) -> (0x51, 0x02)   # engaged, Power mode
     """
     high_byte = (raw >> 8) & 0xFF
     low_byte = raw & 0xFF
@@ -252,6 +287,9 @@ def _override_autopilot_mode(data_bytes: bytes):
     as a plain scaled number. Returns (value, display_text, layout) - the same
     three pieces decode_channel_value returns for every other channel, so the
     caller can treat this result the same way as any other.
+
+    Example (raw 16-bit number 0x5102 - engaged, Power mode selected):
+        _override_autopilot_mode(bytes([0x51, 0x02])) -> (20738.0, "Power", None)
     """
     raw = int.from_bytes(data_bytes, byteorder="big", signed=True)
     value = float(raw)
@@ -294,6 +332,14 @@ def decode_channel_value(channel_id: int, format_byte: int, data_bytes: bytes):
         raw integer pulled out of the bytes into a properly-scaled value.
     These two things don't depend on the channel_id - the same format
     template is shared by many different channels.
+
+    Example (a real captured Boatspeed (Knots) reading, channel 0x41):
+        decode_channel_value(0x41, 0x92, bytes([0xF9, 0xDD]))
+        -> {"channel_id": "0x41", "value": 4.77, "display_text": "4.77", "layout": None}
+
+    Example (Heading, channel 0x49, from this module's worked example above):
+        decode_channel_value(0x49, 0x08, bytes([0xCC, 0x29]))
+        -> {"channel_id": "0x49", "value": 41.0, "display_text": "41°M", "layout": "°M"}
     """
     try:
         if len(data_bytes) == 0:
@@ -446,6 +492,18 @@ def decode_frame(frame: bytes) -> dict:
     already validated by FrameBuffer) into
     {"to_address", "from_address", "command", "values": {channel_name: {...}}}.
     Returns {"error": "..."} if the frame's body doesn't parse cleanly.
+
+    Example (a real captured frame carrying Boatspeed (Knots) and Boatspeed (Raw)):
+        decode_frame(bytes.fromhex("ff010a01f54192f9dd420a01ec082cea"))
+        -> {"to_address": "Entire System",
+            "from_address": "Normal CPU (Depth Board in H2000)",
+            "command": "Broadcast",
+            "values": {
+                "Boatspeed (Knots)": {"channel_id": "0x41", "value": 4.77,
+                                       "display_text": "4.77", "layout": None},
+                "Boatspeed (Raw)":   {"channel_id": "0x42", "value": 492.0,
+                                       "display_text": "492 / 2092", "layout": None},
+            }}
     """
     try:
         to_address = frame[0]
@@ -524,6 +582,10 @@ def probe_frame(frame: bytes) -> None:
     and are never queued or returned to any caller. The point is purely to let
     a human eyeball, in the logs, whether the same (channel_id, format_byte,
     data...) structure seems to hold for these frames too.
+
+    This function has no return value - its only output is DEBUG log lines,
+    e.g. calling it on a Keep Alive frame might log something like:
+        PROBE cmd=Keep Alive  All FFDs←Normal CPU (Depth Board in H2000)  body=[...]
     """
     if not logger.isEnabledFor(logging.DEBUG):
         return  # skip all the work below if nobody would see the output anyway
@@ -592,6 +654,16 @@ def decode_ascii_frame(frame: bytes) -> dict:
     """Decode a LatLon-command frame. Its body is not a channel record at all -
     it's a single ASCII position-fix string, so it's handled directly here
     rather than through decode_channel_value.
+
+    Example (a real captured position fix, 33°52.450'S 151°13.920'E):
+        decode_ascii_frame(bytes.fromhex(
+            "ff601503894e50333335322e3435305331353131332e3932304572"))
+        -> {"to_address": "Entire System",
+            "from_address": "External Compass (NMEA FFD 60)",
+            "command": "LatLon",
+            "values": {"LatLon": {"channel_id": "0x4E", "value": None,
+                                   "display_text": "3352.450S15113.920E",
+                                   "layout": None}}}
     """
     try:
         to_address = frame[0]
@@ -646,6 +718,14 @@ def decode_light_frame(frame: bytes) -> dict:
     single byte giving the level (Off/Low/Medium/High). Surfaced as a
     synthetic "Backlight" channel so it queues like other channel data, even
     though it isn't a real FastNet channel record.
+
+    Example (a real captured "set to Low" frame):
+        decode_light_frame(bytes.fromhex("ff5001c9e701ff"))
+        -> {"to_address": "Entire System",
+            "from_address": "Pilot FFD (50)",
+            "command": "Light Intensity",
+            "values": {"Backlight": {"channel_id": None, "value": 1.0,
+                                      "display_text": "Low", "layout": None}}}
     """
     try:
         to_address = frame[0]
@@ -693,6 +773,10 @@ def _channel_id_from_entry(decoded_entry: dict):
     integer, or return None if there isn't one (e.g. the synthetic
     "Backlight" entry from decode_light_frame has channel_id=None, since it
     isn't a real FastNet channel).
+
+    Example:
+        _channel_id_from_entry({"channel_id": "0xC1", "value": 7.3}) -> 193   # 0xC1
+        _channel_id_from_entry({"channel_id": None, "value": 1.0}) -> None
     """
     channel_id_hex = decoded_entry.get("channel_id")
     if not channel_id_hex:
@@ -711,6 +795,10 @@ def _apply_transform(value, transform: dict):
       - "affine":   multiply by a scale AND add an offset (e.g. °C -> K).
     "overrideEnum" transforms (channel 0xB5) are handled separately by
     _autopilot_signalk_state, not by this function.
+
+    Example:
+        _apply_transform(10.0, {"type": "scale", "factor": 0.514444}) -> 5.14444   # knots -> m/s
+        _apply_transform(20.0, {"type": "affine", "scale": 1, "offset": 273.15}) -> 293.15   # °C -> K
     """
     transform_type = transform["type"]
     if transform_type == "identity":
@@ -728,6 +816,9 @@ def _autopilot_signalk_state(value):
     """Channel 0xB5's Signal K projection: the same composite-byte decoding as
     _override_autopilot_mode above, but returning the Signal K enum string
     (e.g. "directControl") instead of the human display text (e.g. "Power").
+
+    Example (same 0x5102 - engaged, Power mode - as _override_autopilot_mode's example):
+        _autopilot_signalk_state(20738.0) -> "directControl"
     """
     if value is None:
         return None
@@ -748,6 +839,10 @@ def parse_position(ascii_text):
     {"latitude": ..., "longitude": ...} in decimal degrees. The format is
     DDMM.MMM<N|S> followed by DDDMM.MMM<E|W> (degrees, then minutes with a
     decimal fraction). Returns None if the text doesn't look like a fix.
+
+    Example:
+        parse_position("3352.450S15113.920E")
+        -> {"latitude": -33.874166666666667, "longitude": 151.232}
     """
     if not ascii_text:
         return None
@@ -787,6 +882,10 @@ def unit_for(path: str) -> str:
     matching path - there are only around 100 channels, and this function
     isn't called in a hot loop, so a simple scan is both clear and fast
     enough; there's no need for a precomputed lookup table.
+
+    Example:
+        unit_for("navigation.speedThroughWater") -> "m/s"
+        unit_for("nonexistent.path") -> ""
     """
     for channel_info in _CHANNELS.values():
         signalk_info = channel_info.get("signalk")
@@ -821,6 +920,13 @@ def _pick_lowest_priority_reading(candidates):
     0) wins over feet (priority 1), which wins over fathoms (priority 2), but
     only among whichever of those channels actually showed up in this
     particular frame.
+
+    Example (both metres and feet present - metres wins, since it has the
+    lower priority number, even though it's listed second here):
+        _pick_lowest_priority_reading([
+            (1, 24.0, {"transform": {"type": "scale", "factor": 0.3048}}),  # feet
+            (0, 7.3, {"transform": {"type": "identity"}}),                   # metres
+        ]) -> 7.3
     """
     def priority_of(candidate):
         priority, value, signalk_info = candidate
@@ -844,6 +950,15 @@ def project(decoded_frame: dict, battery_id: str = "house") -> dict:
     generic "bandg.unknown.0x.." path, so that decodable data is never
     silently lost just because nobody has mapped it to a proper Signal K path
     yet.
+
+    Example (a real captured frame carrying Heel Angle, Fore/Aft Trim, Battery
+    Volts, and one still-unmapped channel, 0x3B):
+        project(decode_frame(bytes.fromhex(
+            "ff051401e78d8105263b3101fa344700f300cc9b4700a000099b")))
+        -> {"electrical.batteries.house.voltage": 13.18,
+            "navigation.attitude.roll": -0.3560471674068432,
+            "navigation.attitude.pitch": -0.015707963267948967,
+            "bandg.unknown.0x3B": 506.0}
     """
     command = decoded_frame.get("command")
     decoded_values = decoded_frame.get("values", {})
@@ -948,6 +1063,10 @@ def _strip_suffix(text: str, suffix: str) -> str:
     return text unchanged. (Python's built-in str.removesuffix() would do
     this in one call, but this project supports Python 3.7+, which predates
     that method.)
+
+    Example:
+        _strip_suffix("navigation.headingMagnetic", "Magnetic") -> "navigation.heading"
+        _strip_suffix("navigation.speedThroughWater", "Magnetic") -> "navigation.speedThroughWater"
     """
     if text.endswith(suffix):
         return text[:-len(suffix)]
@@ -960,6 +1079,18 @@ def channel_map() -> dict:
     handled (standard / vendor / routed / depth fallback / collapsed / drop /
     unknown). Used to generate docs/channel_map.md - see
     docs/generate_channel_map.py.
+
+    Example (one row of each kind):
+        channel_map()[0x41]
+        -> {"name": "Boatspeed (Knots)", "path": "navigation.speedThroughWater",
+            "unit": "m/s", "kind": "standard"}
+        channel_map()[0x49]
+        -> {"name": "Heading", "path": "navigation.heading{Magnetic,True}",
+            "unit": "rad", "kind": "routed(M/T)"}
+        channel_map()[0x00]
+        -> {"name": "Node Reset", "path": "—", "unit": "", "kind": "drop"}
+        channel_map()[0x0C]
+        -> {"name": "Linear 5", "path": "bandg.unknown.0x0C", "unit": "", "kind": "unknown"}
     """
     result = {}
     for channel_id, name in sorted(CHANNEL_LOOKUP.items()):
