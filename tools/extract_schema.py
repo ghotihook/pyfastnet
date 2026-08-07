@@ -10,7 +10,11 @@ hand below (verified against fastnet_decoder/decode_fastnet.py).
 
 Not a permanent tool: after Stage 3's cutover, mappings.py/decode_fastnet.py/
 signalk_map.py are deleted and data/fastnet.json becomes the only source of truth,
-so there is nothing left to extract from on a second run.
+so there is nothing left to extract from on a second run. This file is kept as a
+historical record of how fastnet.json was originally derived, not as something
+that runs again - it will fail to import once those modules are gone. Its content
+is not guaranteed to exactly match fastnet.json going forward, since fastnet.json
+can now be hand-edited directly (see fastnet_decoder/data/README.md).
 """
 import json
 from pathlib import Path
@@ -26,9 +30,12 @@ def hx(n: int) -> str:
 
 
 # ── Scaling: format_byte bits 6-7 -> divisor -> decimal places ────────────────
-# Mirrors decode_fastnet.py's _DIVISOR_MAP / _DECIMAL_PLACES_MAP.
+# Mirrors decode_fastnet.py's _DIVISOR_MAP / _DECIMAL_PLACES_MAP. Keys are the
+# top two bits read as a plain number (0-3), not a binary-string literal like
+# "0b10" - plain integer keys are simpler for interpreter.py to parse.
 SCALING = {
-    "divisorByTopBits": {"0b00": 1, "0b01": 10, "0b10": 100, "0b11": 1000},
+    "_comment": "format_byte's top two bits, read as a plain number 0-3, select a divisor.",
+    "divisorByTopTwoBits": {"0": 1, "1": 10, "2": 100, "3": 1000},
     "decimalPlacesByDivisor": {"1": 0, "10": 1, "100": 2, "1000": 3},
 }
 

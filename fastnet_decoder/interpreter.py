@@ -1,13 +1,59 @@
-"""Generic, schema-driven FastNet decode engine.
+"""FastNet protocol decoder — reads fastnet_decoder/data/fastnet.json and decodes
+raw FastNet bytes into Python values, using that file as the single source of
+truth for the protocol.
 
-Reads fastnet_decoder/data/fastnet.json once at import time and decodes any
-frame from it — no channel names or per-format branches are hardcoded here.
-Adding a channel that fits an existing formatTemplates op requires no change
-to this file, only a data.json edit.
+Why almost no protocol facts are hardcoded in this file
+---------------------------------------------------------
+The FastNet wire format is regular: every reading on the bus arrives as a small
+record of (channel_id, format_byte, data_bytes).
 
-Stage 2 (this module): built and validated for parity against the real,
-hand-written decoder (mappings.py/decode_fastnet.py/signalk_map.py) via
-tests/test_interpreter_parity.py, but not yet wired into __init__.py.
+  - channel_id says WHAT physical quantity this is (boat speed, depth, wind
+    angle, ...).
+  - format_byte says HOW the data_bytes are laid out - how many bytes, signed
+    or unsigned, whether there's an extra "layout" byte carrying a sign or
+    display suffix, and so on.
+
+There are only a handful of distinct byte layouts in the whole protocol - we
+call each one a "format template", and this file implements the decoding logic
+for each template exactly once, as a small generic function (see
+decode_channel_value below). Everything that varies between individual
+channels - names, which format template they use, what Signal K path and unit
+they map to - lives as DATA in fastnet_decoder/data/fastnet.json, not as
+Python code. See fastnet_decoder/data/README.md for a full explanation of that
+file's structure.
+
+The practical result: adding a newly-identified channel, or fixing a wrong
+Signal K mapping, is a one-line edit to fastnet.json. It does NOT require
+touching this file, unless the new channel needs a genuinely new byte layout
+that none of the existing format templates cover (rare - see the "unsupported"
+op below for what happens when that's the case).
+
+A worked example, start to finish
+------------------------------------
+Say a Heading reading arrives with channel_id=0x49, format_byte=0x08, and
+data_bytes=[0xCC, 0x29]:
+
+  1. format_byte & 0x0F = 0x08, so fastnet.json's formatTemplates["0x08"]
+     describes how to decode it (see the "layoutValue" branch below).
+  2. That template pulls a 9-bit unsigned number out of the two bytes: 41.
+  3. format_byte's top two bits select a divisor (here, 1), so value = 41.0.
+  4. The template also pulls a 7-bit "layout" code out of byte 0: 0x66, which
+     fastnet.json's segmentA lookup says means "°M" (magnetic bearing).
+  5. decode_frame() looks up channel_id 0x49's name ("Heading") from
+     fastnet.json's channels table, so the caller gets back:
+       {"Heading": {"value": 41.0, "display_text": "41°M", "layout": "°M", ...}}
+  6. If the caller then calls project() on that result, fastnet.json says
+     channel 0x49 is a layout-routed bearing: layout "°M" means the value
+     belongs at Signal K path "navigation.headingMagnetic", converted from
+     degrees to radians.
+
+Module layout
+---------------
+  - decode_channel_value() / decode_frame()      - turn raw bytes into readings
+  - probe_frame()                                - debug-only speculative decode
+  - decode_ascii_frame() / decode_light_frame()  - the two non-channel message types
+  - project()                                    - turn readings into Signal K paths
+  - channel_map()                                - a human-readable reference table
 """
 import datetime
 import json
@@ -19,170 +65,395 @@ from .logger import logger
 _DATA_PATH = Path(__file__).resolve().parent / "data" / "fastnet.json"
 SCHEMA = json.loads(_DATA_PATH.read_text(encoding="utf-8"))
 
-_FORMAT_TEMPLATES = SCHEMA["formatTemplates"]
-_FORMAT_SIZE_MAP = {int(k, 16): v for k, v in SCHEMA["formatSizeMap"].items()}
-_DIVISOR_MAP = {int(k[2:], 2): v for k, v in SCHEMA["scaling"]["divisorByTopBits"].items()}
-_DECIMAL_PLACES_MAP = {int(k): v for k, v in SCHEMA["scaling"]["decimalPlacesByDivisor"].items()}
 
-_LK = SCHEMA["lookups"]
-ADDRESS_LOOKUP = {int(k, 16): v for k, v in _LK["addresses"].items()}
-COMMAND_LOOKUP = {int(k, 16): v for k, v in _LK["commands"].items()}
-IGNORED_COMMANDS = set(_LK["ignoredCommands"])
-CHANNEL_LOOKUP = {int(k, 16): v for k, v in _LK["channelNames"].items()}
-BACKLIGHT_LEVELS = {int(k, 16): v for k, v in _LK["backlightLevels"].items()}
-SEGMENT_A = {int(k, 16): v for k, v in _LK["segmentA"].items()}
-SEGMENT_B = {int(k, 16): v for k, v in _LK["segmentB"].items()}
-_LAYOUT_SIGN = _LK["layoutSign"]
-_LAYOUT_DISPLAY = _LK["layoutDisplay"]
-_AUTOPILOT_STATE = _LK["autopilotState"]
+# ── Loading the schema into convenient Python lookups ──────────────────────────
+#
+# fastnet.json always writes byte values (channel ids, addresses, bitmasks...)
+# as hex strings like "0x41", because that's how this protocol's own
+# documentation and B&G's channel numbers are normally written. Python code
+# needs plain integers to index bytes and do bit arithmetic, so the two
+# helpers below are the one place that conversion happens.
 
+def _parse_hex(hex_string: str) -> int:
+    """Turn a hex string like '0x41' into the plain integer 65."""
+    return int(hex_string, 16)
+
+
+def _hex_keyed_dict_to_int_keyed_dict(hex_keyed_dict: dict) -> dict:
+    """Convert a dict whose keys are hex strings ('0x41') into an equivalent
+    dict keyed by the plain integer (65). Used for every *_LOOKUP table below.
+    """
+    int_keyed_dict = {}
+    for hex_key, value in hex_keyed_dict.items():
+        int_keyed_dict[_parse_hex(hex_key)] = value
+    return int_keyed_dict
+
+
+_FORMAT_TEMPLATES = SCHEMA["formatTemplates"]   # kept keyed by hex string, e.g. "0x08"
+_FORMAT_SIZE_MAP = _hex_keyed_dict_to_int_keyed_dict(SCHEMA["formatSizeMap"])
+
+# format_byte's top two bits are a plain 2-bit number (0, 1, 2, or 3) that
+# selects how much to divide the raw integer by, and how many decimal places
+# to show when formatting it - e.g. top bits = 2 -> divide by 100, so raw
+# integer 12345 on the wire means the value 123.45.
+_DIVISOR_BY_TOP_TWO_BITS = {int(key): value for key, value in SCHEMA["scaling"]["divisorByTopTwoBits"].items()}
+_DECIMAL_PLACES_BY_DIVISOR = {int(key): value for key, value in SCHEMA["scaling"]["decimalPlacesByDivisor"].items()}
+
+_LOOKUPS = SCHEMA["lookups"]
+ADDRESS_LOOKUP = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["addresses"])
+COMMAND_LOOKUP = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["commands"])
+IGNORED_COMMANDS = set(_LOOKUPS["ignoredCommands"])
+CHANNEL_LOOKUP = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["channelNames"])
+BACKLIGHT_LEVELS = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["backlightLevels"])
+SEGMENT_A = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["segmentA"])
+SEGMENT_B = _hex_keyed_dict_to_int_keyed_dict(_LOOKUPS["segmentB"])
+_LAYOUT_SIGN = _LOOKUPS["layoutSign"]          # keyed by layout token string, e.g. "H[data]"
+_LAYOUT_DISPLAY = _LOOKUPS["layoutDisplay"]    # keyed by layout token string
+_AUTOPILOT_STATE = _LOOKUPS["autopilotState"]  # keyed by hex string low-byte, e.g. "0x02"
+
+# Kept keyed by hex string, e.g. "0x41" - every lookup against this table below
+# builds that hex string from a channel_id int as needed (f"0x{channel_id:02X}").
 _CHANNELS = SCHEMA["channels"]
-_MESSAGES = SCHEMA["messages"]
+
+# Note: fastnet.json also has a "messages" section describing the LatLon and
+# Light Intensity frame layouts. It is reference documentation only - this
+# file does not read it. Those two message types are simple enough (one ASCII
+# field, one single byte) that decode_ascii_frame() and decode_light_frame()
+# below just implement them directly, rather than through a generic
+# schema-driven mechanism the way channel records are.
 
 
-def _mask(hex_str: str) -> int:
-    return int(hex_str, 16)
+def _lookup_or_unknown(lookup_table: dict, key: int) -> str:
+    """Look up key in lookup_table; if it isn't there, return a readable
+    "Unknown (0x..)" placeholder instead of raising an error.
+
+    Used everywhere this file looks up an address, command, or channel name -
+    none of those tables are guaranteed to be complete, since this protocol is
+    still being reverse-engineered, so every lookup needs a graceful fallback.
+    """
+    name = lookup_table.get(key)
+    if name is not None:
+        return name
+    return f"Unknown (0x{key:02X})"
 
 
 def extract_bits(data_bytes: bytes, pieces) -> int:
-    value = 0
-    for p in pieces:
-        value |= (data_bytes[p["byte"]] & _mask(p["mask"])) << p.get("shiftLeft", 0)
-    return value
+    """Pull an unsigned integer out of one or more bit-fields spread across
+    data_bytes, then combine them into a single number.
+
+    Each item in `pieces` describes one bit-field: which byte it lives in, a
+    bitmask selecting which bits of that byte belong to this piece, and how
+    far left to shift those bits once extracted (so a piece covering the
+    "high" bits of a multi-byte number can be moved into its correct place
+    before being combined with the other pieces).
+
+    Worked example - format 0x08 (used by Heading) packs a 9-bit unsigned
+    value across two bytes: the low bit of byte 0 is the value's high bit, and
+    all of byte 1 is the value's low 8 bits:
+
+        pieces = [
+            {"byte": 0, "mask": "0x01", "shiftLeft": 8},  # 1 bit,  becomes bit 8
+            {"byte": 1, "mask": "0xFF", "shiftLeft": 0},   # 8 bits, become bits 0-7
+        ]
+
+    For data_bytes = [0xCC, 0x29]:
+        piece 1: (0xCC & 0x01) << 8  =  0  << 8  =  0
+        piece 2: (0x29 & 0xFF) << 0  =  41 << 0  =  41
+        combined (the two pieces OR'd together)   =  41
+    """
+    combined_value = 0
+    for piece in pieces:
+        byte_value = data_bytes[piece["byte"]]
+        mask = _parse_hex(piece["mask"])
+        masked_bits = byte_value & mask
+        shift_amount = piece.get("shiftLeft", 0)
+        combined_value = combined_value | (masked_bits << shift_amount)
+    return combined_value
 
 
-def _layout_for(byte: int) -> str:
-    return SEGMENT_A.get(byte, "TBC")
+def _layout_for(segment_code: int) -> str:
+    """Look up a "layout" token (e.g. '°M', 'H[data]') from a SEGMENT_A byte
+    code. Returns "TBC" ("to be confirmed") for any code not yet identified -
+    this matches the original hand-written decoder's behaviour. None is
+    reserved for the two confirmed-blank codes (0x00, 0x80), which really do
+    mean "no indicator shown", not "unidentified".
+    """
+    return SEGMENT_A.get(segment_code, "TBC")
 
 
-def _sign_for(layout) -> int:
+def _sign_for(layout: str) -> int:
+    """Return -1 if this layout token means the value should be negative,
+    otherwise 1. Only a handful of tokens carry a negative sign (see
+    fastnet.json's lookups.layoutSign) - everything else, including "TBC"
+    and None, is treated as positive.
+    """
     return _LAYOUT_SIGN.get(layout, 1)
 
 
-def _render_display(layout, formatted: str) -> str:
-    entry = _LAYOUT_DISPLAY.get(layout) if layout is not None else None
-    if entry is None:
-        return formatted
-    text = formatted
-    if entry.get("stripSign"):
+def _render_display(layout, formatted_number: str) -> str:
+    """Wrap a formatted number string with whatever prefix/suffix its layout
+    token calls for - e.g. "41" with layout "°M" becomes "41°M".
+
+    fastnet.json's lookups.layoutDisplay describes this per layout token, as
+    one of:
+      - nothing at all (most tokens, and also "TBC"/None) - the number comes
+        back unchanged.
+      - a suffix, e.g. "°M" -> "41°M".
+      - a prefix, e.g. "L[data]" -> "L-2.0".
+      - a prefix AND "stripSign": true, e.g. "H[data]" -> the leading "-" is
+        removed from the number first, because the H prefix already tells the
+        reader the value is negative (so "H[data]" renders "-20.4" as
+        "H20.4", not "H-20.4"). This is why "H[data]" and "L[data]" render
+        differently even though both mean "negative value" - it comes
+        straight from how the original B&G displays show it, not from any
+        general rule.
+    """
+    if layout is None:
+        return formatted_number
+
+    display_rule = _LAYOUT_DISPLAY.get(layout)
+    if display_rule is None:
+        # No display rule for this token - e.g. "TBC", or a token whose sign
+        # is already baked into the number with no extra decoration needed.
+        return formatted_number
+
+    text = formatted_number
+    if display_rule.get("stripSign"):
         text = text.lstrip("-")
-    if "prefix" in entry:
-        text = entry["prefix"] + text
-    if "suffix" in entry:
-        text = text + entry["suffix"]
+    if "prefix" in display_rule:
+        text = display_rule["prefix"] + text
+    if "suffix" in display_rule:
+        text = text + display_rule["suffix"]
     return text
 
 
-# ── channel override handlers (named escape hatch, keyed by name in the schema) ─
+# ── channel 0xB5 (Autopilot Mode): the one documented escape hatch ─────────────
+#
+# Every other channel is decoded purely from its format template - the
+# channel_id only matters for looking up its name. Channel 0xB5 is the sole
+# exception: its 16-bit value is a composite of two separate pieces of
+# information (engagement state + selected mode), not a plain scaled number,
+# so it needs its own decoding function rather than a generic template.
+
+def _split_autopilot_composite(raw: int):
+    """Split Autopilot Mode's raw 16-bit number into its high byte
+    (engagement state) and low byte (selected mode). Both
+    _override_autopilot_mode (below) and _autopilot_signalk_state (further
+    down, used by project()) need to split the same number the same way, so
+    this is shared between them rather than duplicated.
+    """
+    high_byte = (raw >> 8) & 0xFF
+    low_byte = raw & 0xFF
+    return high_byte, low_byte
+
 
 def _override_autopilot_mode(data_bytes: bytes):
+    """Decode channel 0xB5's raw bytes as engagement-state + mode, instead of
+    as a plain scaled number. Returns (value, display_text, layout) - the same
+    three pieces decode_channel_value returns for every other channel, so the
+    caller can treat this result the same way as any other.
+    """
     raw = int.from_bytes(data_bytes, byteorder="big", signed=True)
     value = float(raw)
-    high, low = (raw >> 8) & 0xFF, raw & 0xFF
-    if high == 0x50:
+    high_byte, low_byte = _split_autopilot_composite(raw)
+
+    if high_byte == 0x50:
         display_text = "Standby"
-    elif high in (0x51, 0x59):
-        entry = _AUTOPILOT_STATE.get(f"0x{low:02X}")
-        display_text = entry["displayText"] if entry else f"Unknown ({raw})"
+    elif high_byte in (0x51, 0x59):
+        mode_entry = _AUTOPILOT_STATE.get(f"0x{low_byte:02X}")
+        if mode_entry is not None:
+            display_text = mode_entry["displayText"]
+        else:
+            display_text = f"Unknown ({raw})"
     else:
         display_text = f"Unknown ({raw})"
-    return value, display_text, None
+
+    layout = None  # this channel has no segment-display layout byte
+    return value, display_text, layout
 
 
-_OVERRIDES = {"autopilotMode": _override_autopilot_mode}
+_OVERRIDES = {
+    # Maps an override name (as referenced by a channel's "overrides" entry in
+    # fastnet.json) to the Python function that implements it. This dict is
+    # the ONLY place in the whole decoder where a specific channel_id gets
+    # special-cased instead of going through a generic format template.
+    "autopilotMode": _override_autopilot_mode,
+}
 
 
 def decode_channel_value(channel_id: int, format_byte: int, data_bytes: bytes):
+    """Decode one channel record's data bytes into a
+    {"channel_id", "value", "display_text", "layout"} dict, or return None if
+    this record cannot be decoded (the format isn't recognised, or there were
+    no data bytes at all).
+
+    format_byte encodes two independent things, in different bits:
+      - the low 4 bits (format_byte & 0x0F) select which format TEMPLATE
+        describes the byte layout (see fastnet.json's formatTemplates).
+      - the top 2 bits (format_byte >> 6) select a DIVISOR, used to turn the
+        raw integer pulled out of the bytes into a properly-scaled value.
+    These two things don't depend on the channel_id - the same format
+    template is shared by many different channels.
+    """
     try:
         if len(data_bytes) == 0:
             return None
 
         format_bits = format_byte & 0x0F
-        divisor = _DIVISOR_MAP[(format_byte >> 6) & 0b11]
-        decimal_places = _DECIMAL_PLACES_MAP[divisor]
+        top_two_bits = (format_byte >> 6) & 0b11
+        divisor = _DIVISOR_BY_TOP_TWO_BITS[top_two_bits]
+        decimal_places = _DECIMAL_PLACES_BY_DIVISOR[divisor]
 
-        channel = _CHANNELS.get(f"0x{channel_id:02X}", {})
-        override_name = channel.get("overrides", {}).get(f"0x{format_bits:02X}")
-        if override_name:
-            value, display_text, layout = _OVERRIDES[override_name](data_bytes)
-            return {"channel_id": f"0x{channel_id:02X}", "value": value,
-                    "display_text": display_text, "layout": layout}
+        channel_id_hex = f"0x{channel_id:02X}"
+        format_bits_hex = f"0x{format_bits:02X}"
 
-        template = _FORMAT_TEMPLATES.get(f"0x{format_bits:02X}")
+        # Check for a channel-specific override before falling back to the
+        # generic format template (see the section above for why 0xB5 needs
+        # this).
+        channel_info = _CHANNELS.get(channel_id_hex, {})
+        channel_overrides = channel_info.get("overrides", {})
+        override_name = channel_overrides.get(format_bits_hex)
+        if override_name is not None:
+            override_function = _OVERRIDES[override_name]
+            value, display_text, layout = override_function(data_bytes)
+            return {
+                "channel_id": channel_id_hex,
+                "value": value,
+                "display_text": display_text,
+                "layout": layout,
+            }
+
+        template = _FORMAT_TEMPLATES.get(format_bits_hex)
         if template is None or template["op"] == "unsupported":
-            logger.debug(f"       unsupported format 0x{format_bits:02X}")
+            # This format nibble has no known byte layout yet - e.g. 0x09 has
+            # never been observed in captured data. Nothing can be decoded.
+            logger.debug(f"       unsupported format {format_bits_hex}")
             return None
 
         op = template["op"]
-        layout = None
+        layout = None  # most format templates have no layout byte at all
 
         if op == "scaledInt":
-            lo, hi = template["valueBytes"]
-            raw = int.from_bytes(data_bytes[lo:hi], byteorder="big", signed=template["signed"])
-            value = raw / divisor
+            # A plain N-byte signed or unsigned integer, scaled by the
+            # divisor. Used by most numeric channels, e.g. Boatspeed.
+            start, end = template["valueBytes"]
+            raw_integer = int.from_bytes(data_bytes[start:end], byteorder="big", signed=template["signed"])
+            value = raw_integer / divisor
             display_text = f"{value:.{decimal_places}f}"
 
         elif op == "scaledBitfield":
-            unsigned = extract_bits(data_bytes, template["pieces"])
-            value = unsigned / divisor
+            # Like scaledInt, but the integer is packed across specific bits
+            # of specific bytes rather than being one contiguous N-byte
+            # integer - see extract_bits() above.
+            raw_integer = extract_bits(data_bytes, template["pieces"])
+            value = raw_integer / divisor
             display_text = f"{value:.{decimal_places}f}"
 
         elif op == "signedLayoutValue":
-            layout_byte = data_bytes[template["layoutByte"]]
-            layout = _layout_for(layout_byte)
+            # One byte in the record is a "layout" code that gives both the
+            # sign of the value and how to decorate its display text - e.g.
+            # Rudder Angle uses this.
+            layout_byte_value = data_bytes[template["layoutByte"]]
+            layout = _layout_for(layout_byte_value)
+
             if "pieces" in template:
-                unsigned = extract_bits(data_bytes, template["pieces"])
+                unsigned_integer = extract_bits(data_bytes, template["pieces"])
             else:
-                lo, hi = template["valueBytes"]
-                unsigned = int.from_bytes(data_bytes[lo:hi], byteorder="big", signed=False)
-            value = _sign_for(layout) * unsigned / divisor
+                start, end = template["valueBytes"]
+                unsigned_integer = int.from_bytes(data_bytes[start:end], byteorder="big", signed=False)
+
+            sign = _sign_for(layout)
+            value = sign * unsigned_integer / divisor
             display_text = _render_display(layout, f"{value:.{decimal_places}f}")
 
         elif op == "layoutValue":
-            lb = template["layoutBits"]
-            layout_code = (data_bytes[lb["byte"]] & _mask(lb["mask"])) >> lb["shiftRight"]
+            # Also has a layout byte, but here it only affects the DISPLAY
+            # text, not the sign of the value (unlike signedLayoutValue
+            # above). Used by Heading - see this module's worked example.
+            layout_bits_spec = template["layoutBits"]
+            byte_to_read = data_bytes[layout_bits_spec["byte"]]
+            mask = _parse_hex(layout_bits_spec["mask"])
+            masked_bits = byte_to_read & mask
+            layout_code = masked_bits >> layout_bits_spec["shiftRight"]
             layout = _layout_for(layout_code)
-            unsigned = extract_bits(data_bytes, template["pieces"])
-            value = unsigned / divisor
+
+            unsigned_integer = extract_bits(data_bytes, template["pieces"])
+            value = unsigned_integer / divisor
             display_text = _render_display(layout, f"{value:.{decimal_places}f}")
 
         elif op == "durationHMS":
-            h, m, s = data_bytes[template["hByte"]], data_bytes[template["mByte"]], data_bytes[template["sByte"]]
-            value = float(h * 3600 + m * 60 + s)
-            display_text = str(datetime.timedelta(hours=h, minutes=m, seconds=s))
+            # Three bytes are hours, minutes, seconds (a fourth "status" byte
+            # is ignored) - used by the Timer channel. value is stored as
+            # total seconds; display_text is a human-readable "H:MM:SS"
+            # string.
+            hours = data_bytes[template["hByte"]]
+            minutes = data_bytes[template["mByte"]]
+            seconds = data_bytes[template["sByte"]]
+            value = float(hours * 3600 + minutes * 60 + seconds)
+            display_text = str(datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds))
 
         elif op == "segmentDisplay":
+            # This channel is only ever broadcast as raw 7-segment-display
+            # glyphs, with no separate numeric value - by protocol design,
+            # value is always None here. Each data byte maps independently to
+            # one glyph via SEGMENT_B.
             value = None
-            display_text = "".join(SEGMENT_B.get(b, "TBC") for b in data_bytes)
+            glyphs = []
+            for data_byte in data_bytes:
+                glyphs.append(SEGMENT_B.get(data_byte, "TBC"))
+            display_text = "".join(glyphs)
 
         elif op == "pairedScaledInt":
-            a0, a1 = template["firstBytes"]
-            b0, b1 = template["secondBytes"]
-            first = int.from_bytes(data_bytes[a0:a1], byteorder="big", signed=template["signed"]) / divisor
-            second = int.from_bytes(data_bytes[b0:b1], byteorder="big", signed=template["signed"]) / divisor
+            # Two independent signed integers packed into one record, e.g.
+            # Boatspeed (Raw) / Heading (Raw). Only the first is returned as
+            # "value" - both appear in display_text as "first / second".
+            first_start, first_end = template["firstBytes"]
+            second_start, second_end = template["secondBytes"]
+            first = int.from_bytes(data_bytes[first_start:first_end], byteorder="big", signed=template["signed"])
+            second = int.from_bytes(data_bytes[second_start:second_end], byteorder="big", signed=template["signed"])
+            first = first / divisor
+            second = second / divisor
             value = first
             display_text = f"{first:.{decimal_places}f} / {second:.{decimal_places}f}"
 
         else:
-            logger.debug(f"       unhandled op {op!r} for format 0x{format_bits:02X}")
+            # A format template exists but names an op this file doesn't
+            # implement. Shouldn't happen with a well-formed fastnet.json,
+            # but fail safely rather than raising.
+            logger.debug(f"       unhandled op {op!r} for format {format_bits_hex}")
             return None
 
-        return {"channel_id": f"0x{channel_id:02X}", "value": value,
-                "display_text": display_text, "layout": layout}
+        return {
+            "channel_id": channel_id_hex,
+            "value": value,
+            "display_text": display_text,
+            "layout": layout,
+        }
 
     except Exception as e:
         logger.error(f"Error decoding channel 0x{channel_id:02X}: {e}")
         return None
 
 
-# ── frame-level decoders (envelope walking - same shape as decode_fastnet.py) ──
+# ── frame-level decoders (envelope walking) ─────────────────────────────────
+#
+# A Broadcast frame's body is a sequence of channel records, back to back:
+# [channel_id, format_byte, data_bytes..., channel_id, format_byte, data_bytes..., ...]
+# decode_frame() below walks that sequence, decoding one record at a time.
 
 def decode_frame(frame: bytes) -> dict:
+    """Decode a complete Broadcast-command frame (header + body + checksums
+    already validated by FrameBuffer) into
+    {"to_address", "from_address", "command", "values": {channel_name: {...}}}.
+    Returns {"error": "..."} if the frame's body doesn't parse cleanly.
+    """
     try:
         to_address = frame[0]
         from_address = frame[1]
         body_size = frame[2]
         command = frame[3]
+        # frame[4] is the header checksum - FrameBuffer already validated it
+        # before calling this function.
         body = frame[5:-1]
 
         if len(body) < 2 or len(body) != body_size:
@@ -190,9 +461,9 @@ def decode_frame(frame: bytes) -> dict:
             return {"error": "Invalid body size"}
 
         decoded_data = {
-            "to_address": ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})"),
-            "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
-            "command": COMMAND_LOOKUP.get(command, f"Unknown (0x{command:02X})"),
+            "to_address": _lookup_or_unknown(ADDRESS_LOOKUP, to_address),
+            "from_address": _lookup_or_unknown(ADDRESS_LOOKUP, from_address),
+            "command": _lookup_or_unknown(COMMAND_LOOKUP, command),
             "values": {},
         }
 
@@ -204,10 +475,11 @@ def decode_frame(frame: bytes) -> dict:
 
             channel_id = body[index]
             format_byte = body[index + 1]
-            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+            channel_name = _lookup_or_unknown(CHANNEL_LOOKUP, channel_id)
             index += 2
 
-            data_length = _FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
+            format_bits = format_byte & 0x0F
+            data_length = _FORMAT_SIZE_MAP.get(format_bits, 0)
             if index + data_length > len(body):
                 logger.debug(
                     f"  CH  0x{channel_id:02X} {channel_name}  "
@@ -243,19 +515,27 @@ def decode_frame(frame: bytes) -> dict:
 
 
 def probe_frame(frame: bytes) -> None:
-    """Speculative RE-only unpack of non-Broadcast frames. See decode_fastnet.py's
-    original docstring - never queued, DEBUG-only, best-effort."""
+    """Speculatively unpack a non-Broadcast frame using the same channel-record
+    layout as decode_frame(), for reverse-engineering only.
+
+    The body layout of non-Broadcast commands (pilot messages, NMEA-sourced
+    data, etc.) is NOT known to actually match the Broadcast channel-record
+    format, so everything logged here is a guess: results are logged at DEBUG
+    and are never queued or returned to any caller. The point is purely to let
+    a human eyeball, in the logs, whether the same (channel_id, format_byte,
+    data...) structure seems to hold for these frames too.
+    """
     if not logger.isEnabledFor(logging.DEBUG):
-        return
+        return  # skip all the work below if nobody would see the output anyway
     try:
         to_address = frame[0]
         from_address = frame[1]
         command = frame[3]
         body = frame[5:-1]
 
-        to_name = ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})")
-        from_name = ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})")
-        cmd_name = COMMAND_LOOKUP.get(command, f"Unknown (0x{command:02X})")
+        to_name = _lookup_or_unknown(ADDRESS_LOOKUP, to_address)
+        from_name = _lookup_or_unknown(ADDRESS_LOOKUP, from_address)
+        cmd_name = _lookup_or_unknown(COMMAND_LOOKUP, command)
         logger.debug(f"  PROBE cmd={cmd_name}  {to_name}←{from_name}  body=[{body.hex()}]")
 
         index = 0
@@ -263,11 +543,15 @@ def probe_frame(frame: bytes) -> None:
             if index + 1 >= len(body):
                 logger.debug(f"    PROBE trailing byte  [{body[index:].hex()}]")
                 break
+
             channel_id = body[index]
             format_byte = body[index + 1]
-            channel_name = CHANNEL_LOOKUP.get(channel_id, f"Unknown (0x{channel_id:02X})")
+            channel_name = _lookup_or_unknown(CHANNEL_LOOKUP, channel_id)
             index += 2
-            data_length = _FORMAT_SIZE_MAP.get(format_byte & 0x0F, 0)
+
+            format_bits = format_byte & 0x0F
+            data_length = _FORMAT_SIZE_MAP.get(format_bits, 0)
+
             if data_length == 0:
                 logger.debug(
                     f"    PROBE 0x{channel_id:02X} {channel_name}  "
@@ -282,8 +566,10 @@ def probe_frame(frame: bytes) -> None:
                     f"have={len(body) - index}B  remaining=[{body[index:].hex()}]"
                 )
                 break
+
             data_bytes = body[index:index + data_length]
             index += data_length
+
             decoded = decode_channel_value(channel_id, format_byte, data_bytes)
             if decoded:
                 logger.debug(
@@ -303,29 +589,44 @@ def probe_frame(frame: bytes) -> None:
 
 
 def decode_ascii_frame(frame: bytes) -> dict:
+    """Decode a LatLon-command frame. Its body is not a channel record at all -
+    it's a single ASCII position-fix string, so it's handled directly here
+    rather than through decode_channel_value.
+    """
     try:
         to_address = frame[0]
         from_address = frame[1]
         command = frame[3]
+        # Deliberately no length check on body here (unlike decode_frame /
+        # decode_light_frame): a too-short body raises IndexError below and is
+        # caught by the except block, same end result as an explicit check.
         body = frame[5:-1]
 
         channel_id = body[0]
+        # body[0] is NOT a generic channel id - it's a marker byte that varies
+        # by GPS unit (0x47, 0x4E, ...). This function is only ever called for
+        # LatLon frames, so the entry below is named from the command
+        # ("LatLon"), not from this byte. Looking it up in CHANNEL_LOOKUP
+        # previously produced nonsense names like "Apparent Wind Speed (Raw)".
+        # The raw byte is kept as channel_id in the returned dict purely for
+        # diagnostics.
+        # body[1] is a format byte, unused for ASCII frames.
         data_bytes = body[2:]
-        cmd_name = COMMAND_LOOKUP.get(command)
-        channel_name = cmd_name if cmd_name is not None else f"Unknown (0x{command:02X})"
+
+        cmd_name = _lookup_or_unknown(COMMAND_LOOKUP, command)
 
         try:
             ascii_text = data_bytes.decode("ascii").strip()
         except UnicodeDecodeError as e:
-            logger.warning(f"  CH  0x{channel_id:02X} {channel_name}  ASCII decode failed: {e}")
+            logger.warning(f"  CH  0x{channel_id:02X} {cmd_name}  ASCII decode failed: {e}")
             return {"error": "ASCII decode failed"}
 
         return {
-            "to_address": ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})"),
-            "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
-            "command": cmd_name if cmd_name is not None else f"Unknown (0x{command:02X})",
+            "to_address": _lookup_or_unknown(ADDRESS_LOOKUP, to_address),
+            "from_address": _lookup_or_unknown(ADDRESS_LOOKUP, from_address),
+            "command": cmd_name,
             "values": {
-                channel_name: {
+                cmd_name: {
                     "channel_id": f"0x{channel_id:02X}",
                     "value": None,
                     "display_text": ascii_text,
@@ -340,6 +641,12 @@ def decode_ascii_frame(frame: bytes) -> dict:
 
 
 def decode_light_frame(frame: bytes) -> dict:
+    """Decode a Light Intensity (0xC9) command into the system backlight
+    level. Broadcast from a Pilot FFD to the whole system; the body is a
+    single byte giving the level (Off/Low/Medium/High). Surfaced as a
+    synthetic "Backlight" channel so it queues like other channel data, even
+    though it isn't a real FastNet channel record.
+    """
     try:
         to_address = frame[0]
         from_address = frame[1]
@@ -350,16 +657,17 @@ def decode_light_frame(frame: bytes) -> dict:
             return {"error": "Invalid body size"}
 
         level = body[0]
-        cmd_name = COMMAND_LOOKUP.get(command)
+        cmd_name = _lookup_or_unknown(COMMAND_LOOKUP, command)
         display_text = BACKLIGHT_LEVELS.get(level, f"Unknown ({level})")
+        logger.debug(f"  CH  Backlight  level={level}  display='{display_text}'")
 
         return {
-            "to_address": ADDRESS_LOOKUP.get(to_address, f"Unknown (0x{to_address:02X})"),
-            "from_address": ADDRESS_LOOKUP.get(from_address, f"Unknown (0x{from_address:02X})"),
-            "command": cmd_name if cmd_name is not None else f"Unknown (0x{command:02X})",
+            "to_address": _lookup_or_unknown(ADDRESS_LOOKUP, to_address),
+            "from_address": _lookup_or_unknown(ADDRESS_LOOKUP, from_address),
+            "command": cmd_name,
             "values": {
                 "Backlight": {
-                    "channel_id": None,
+                    "channel_id": None,  # not a real channel id - synthetic entry
                     "value": float(level),
                     "display_text": display_text,
                     "layout": None,
@@ -373,71 +681,127 @@ def decode_light_frame(frame: bytes) -> dict:
 
 
 # ── SignalK projection ──────────────────────────────────────────────────────
+#
+# project() turns a decoded frame's rich {"value", "display_text", "layout"}
+# readings into the canonical {signalk_path: SI_value} view that most callers
+# actually want. Everything it needs to know about each channel - its Signal K
+# path, unit, and how to convert the raw value - comes from that channel's
+# "signalk" entry in fastnet.json.
 
-def _cid(entry) -> int:
-    raw = entry.get("channel_id")
-    if not raw:
+def _channel_id_from_entry(decoded_entry: dict):
+    """Parse a decoded value's channel_id string ('0xC1') back into a plain
+    integer, or return None if there isn't one (e.g. the synthetic
+    "Backlight" entry from decode_light_frame has channel_id=None, since it
+    isn't a real FastNet channel).
+    """
+    channel_id_hex = decoded_entry.get("channel_id")
+    if not channel_id_hex:
         return None
     try:
-        return int(raw, 16)
+        return int(channel_id_hex, 16)
     except (ValueError, TypeError):
         return None
 
 
-def _apply_transform(value, transform):
-    t = transform["type"]
-    if t == "identity":
+def _apply_transform(value, transform: dict):
+    """Convert a raw decoded value into its Signal K (SI-unit) equivalent,
+    using one of the small set of transform types fastnet.json can describe:
+      - "identity": value is already in SI units, return it unchanged.
+      - "scale":    multiply by a fixed factor (e.g. knots -> m/s).
+      - "affine":   multiply by a scale AND add an offset (e.g. °C -> K).
+    "overrideEnum" transforms (channel 0xB5) are handled separately by
+    _autopilot_signalk_state, not by this function.
+    """
+    transform_type = transform["type"]
+    if transform_type == "identity":
         return value
-    if t == "scale":
+    if transform_type == "scale":
         return value * transform["factor"]
-    if t == "affine":
+    if transform_type == "affine":
         return value * transform.get("scale", 1) + transform.get("offset", 0)
-    raise ValueError(f"unhandled transform type {t!r}")
+    # An unrecognised transform type means fastnet.json is malformed - fail
+    # loudly rather than silently returning the wrong value.
+    raise ValueError(f"unhandled transform type {transform_type!r}")
 
 
-def _ap_state(value):
+def _autopilot_signalk_state(value):
+    """Channel 0xB5's Signal K projection: the same composite-byte decoding as
+    _override_autopilot_mode above, but returning the Signal K enum string
+    (e.g. "directControl") instead of the human display text (e.g. "Power").
+    """
     if value is None:
         return None
     raw = int(value)
-    high, low = (raw >> 8) & 0xFF, raw & 0xFF
-    if high == 0x50:
+    high_byte, low_byte = _split_autopilot_composite(raw)
+    if high_byte == 0x50:
         return "standby"
-    if high in (0x51, 0x59):
-        entry = _AUTOPILOT_STATE.get(f"0x{low:02X}")
-        return entry["signalk"] if entry else None
+    if high_byte in (0x51, 0x59):
+        mode_entry = _AUTOPILOT_STATE.get(f"0x{low_byte:02X}")
+        if mode_entry is not None:
+            return mode_entry["signalk"]
+        return None
     return None
 
 
 def parse_position(ascii_text):
+    """Parse a FastNet LatLon fix string, e.g. '3352.450S15113.920E', into
+    {"latitude": ..., "longitude": ...} in decimal degrees. The format is
+    DDMM.MMM<N|S> followed by DDDMM.MMM<E|W> (degrees, then minutes with a
+    decimal fraction). Returns None if the text doesn't look like a fix.
+    """
     if not ascii_text:
         return None
-    lat_i = max(ascii_text.find("N"), ascii_text.find("S"))
-    lon_i = max(ascii_text.find("E"), ascii_text.find("W"))
-    if lat_i == -1 or lon_i == -1:
+
+    # Find the compass-direction letters first - they mark where latitude
+    # ends and where longitude ends.
+    lat_end = max(ascii_text.find("N"), ascii_text.find("S"))
+    lon_end = max(ascii_text.find("E"), ascii_text.find("W"))
+    if lat_end == -1 or lon_end == -1:
         return None
+
     try:
-        lat_p, lat_d = ascii_text[:lat_i], ascii_text[lat_i]
-        lon_p, lon_d = ascii_text[lat_i + 1:lon_i], ascii_text[lon_i]
-        lat = int(lat_p[:2]) + float(lat_p[2:]) / 60.0
-        lon = int(lon_p[:3]) + float(lon_p[3:]) / 60.0
+        latitude_digits = ascii_text[:lat_end]
+        latitude_direction = ascii_text[lat_end]
+        longitude_digits = ascii_text[lat_end + 1:lon_end]
+        longitude_direction = ascii_text[lon_end]
+
+        # First 2 digits are whole degrees, the rest (with its decimal point)
+        # is minutes - divide minutes by 60 to fold them into the degrees.
+        latitude = int(latitude_digits[:2]) + float(latitude_digits[2:]) / 60.0
+        # Longitude degrees are 3 digits wide (up to 180°), not 2.
+        longitude = int(longitude_digits[:3]) + float(longitude_digits[3:]) / 60.0
     except (ValueError, IndexError):
         return None
-    if lat_d == "S":
-        lat = -lat
-    if lon_d == "W":
-        lon = -lon
-    return {"latitude": lat, "longitude": lon}
+
+    if latitude_direction == "S":
+        latitude = -latitude
+    if longitude_direction == "W":
+        longitude = -longitude
+
+    return {"latitude": latitude, "longitude": longitude}
 
 
 def unit_for(path: str) -> str:
-    for cid, ch in _CHANNELS.items():
-        sk = ch.get("signalk")
-        if not sk:
+    """Return the SI unit string for a Signal K path emitted by project(), or
+    "" if the path isn't recognised. Scans every channel's schema entry for a
+    matching path - there are only around 100 channels, and this function
+    isn't called in a hot loop, so a simple scan is both clear and fast
+    enough; there's no need for a precomputed lookup table.
+    """
+    for channel_info in _CHANNELS.values():
+        signalk_info = channel_info.get("signalk")
+        if not signalk_info:
             continue
-        if sk.get("path") == path and "pathParam" not in sk:
-            return sk.get("unit") or ""
-        if "routes" in sk and any(r["path"] == path for r in sk["routes"].values()):
-            return sk.get("unit") or ""
+
+        if signalk_info.get("path") == path and "pathParam" not in signalk_info:
+            return signalk_info.get("unit") or ""
+
+        if "routes" in signalk_info:
+            for route in signalk_info["routes"].values():
+                if route["path"] == path:
+                    return signalk_info.get("unit") or ""
+
+    # A few paths aren't tied to any single channel's schema entry.
     if path == "navigation.position":
         return "deg"
     if path == "steering.autopilot.state":
@@ -447,93 +811,207 @@ def unit_for(path: str) -> str:
     return ""
 
 
+def _pick_lowest_priority_reading(candidates):
+    """Given a list of (fallback_priority, value, signalk_info) tuples, return
+    the converted (SI-unit) value of whichever candidate has the lowest
+    priority number AND an actual (non-None) value - or None if none of them
+    have a value.
+
+    Used by project() to resolve the depth fallback chain: metres (priority
+    0) wins over feet (priority 1), which wins over fathoms (priority 2), but
+    only among whichever of those channels actually showed up in this
+    particular frame.
+    """
+    def priority_of(candidate):
+        priority, value, signalk_info = candidate
+        return priority
+
+    candidates_by_priority = sorted(candidates, key=priority_of)
+    for priority, value, signalk_info in candidates_by_priority:
+        if value is not None:
+            return _apply_transform(value, signalk_info["transform"])
+    return None
+
+
 def project(decoded_frame: dict, battery_id: str = "house") -> dict:
+    """Turn a decoded frame (from decode_frame/decode_ascii_frame/
+    decode_light_frame) into a {signalk_path: value} dict - the canonical,
+    SI-unit view of the data.
+
+    Every channel is looked up in fastnet.json's "channels" table to find out
+    where it belongs in Signal K and how to convert its raw value. A channel
+    with no Signal K mapping in the schema still gets emitted, under a
+    generic "bandg.unknown.0x.." path, so that decodable data is never
+    silently lost just because nobody has mapped it to a proper Signal K path
+    yet.
+    """
     command = decoded_frame.get("command")
-    values = decoded_frame.get("values", {})
-    out = {}
+    decoded_values = decoded_frame.get("values", {})
+    result = {}
 
     if command == "LatLon":
-        for entry in values.values():
-            pos = parse_position(entry.get("display_text"))
-            if pos is not None:
-                out["navigation.position"] = pos
-        return out
+        # LatLon frames carry a position fix as ASCII text, not a channel
+        # record - handle that separately and return early.
+        for entry in decoded_values.values():
+            position = parse_position(entry.get("display_text"))
+            if position is not None:
+                result["navigation.position"] = position
+        return result
 
-    depth_seen = {}
+    # Depth can arrive on up to three different channels (metres, feet,
+    # fathoms), depending on how the instrument is configured. We want
+    # whichever one is actually present in THIS frame, preferring metres,
+    # then feet, then fathoms - collect every depth reading seen during the
+    # main loop below, and resolve the winner afterwards.
+    depth_candidates = []   # list of (fallback_priority, value, signalk_info)
     depth_path = None
-    for entry in values.values():
-        cid = _cid(entry)
-        if cid is None:
+
+    for entry in decoded_values.values():
+        channel_id = _channel_id_from_entry(entry)
+        if channel_id is None:
             continue
         value = entry.get("value")
 
-        channel = _CHANNELS.get(f"0x{cid:02X}", {})
-        sk = channel.get("signalk")
+        channel_id_hex = f"0x{channel_id:02X}"
+        channel_info = _CHANNELS.get(channel_id_hex, {})
+        signalk_info = channel_info.get("signalk")
 
-        if sk is None:
+        if signalk_info is None:
+            # No Signal K mapping exists for this channel yet (it may not
+            # even be a named channel at all) - keep the raw value under a
+            # generic path rather than dropping it silently.
             if value is not None:
-                out[f"bandg.unknown.0x{cid:02X}"] = value
+                result[f"bandg.unknown.0x{channel_id:02X}"] = value
             continue
 
-        if sk.get("drop") or "collapsedInto" in sk:
+        if signalk_info.get("drop"):
+            continue  # deliberately excluded (protocol/control channel)
+
+        if "collapsedInto" in signalk_info:
+            continue  # a redundant unit-variant of another channel - skip it
+
+        if "fallbackGroup" in signalk_info:
+            depth_candidates.append((signalk_info["fallbackPriority"], value, signalk_info))
+            depth_path = signalk_info["path"]
             continue
 
-        if "fallbackGroup" in sk:
-            depth_seen[cid] = (sk["fallbackPriority"], value, sk)
-            depth_path = sk["path"]
-            continue
+        transform = signalk_info["transform"]
 
-        transform = sk["transform"]
         if transform["type"] == "overrideEnum":
-            state = _ap_state(value)
+            # Channel 0xB5 (Autopilot Mode): value is a composite byte pair,
+            # not a plain number, so it needs its own conversion function
+            # rather than the generic transforms _apply_transform handles.
+            state = _autopilot_signalk_state(value)
             if state is not None:
-                out[sk["path"]] = state
+                result[signalk_info["path"]] = state
             continue
 
-        if "routedBy" in sk:
+        if "routedBy" in signalk_info:
+            # A bearing whose Signal K path depends on which layout this
+            # particular reading arrived with - e.g. Heading routes to
+            # headingMagnetic or headingTrue depending on that byte.
             layout = entry.get("layout")
-            route = sk["routes"]["°T"] if layout == "°T" else sk["routes"]["°M"]
-            out[route["path"]] = _apply_transform(value, transform) if value is not None else None
+            if layout == "°T":
+                route = signalk_info["routes"]["°T"]
+            else:
+                route = signalk_info["routes"]["°M"]  # default when layout is None/unrecognised
+            if value is None:
+                result[route["path"]] = None
+            else:
+                result[route["path"]] = _apply_transform(value, transform)
             continue
 
-        path = sk["path"]
-        if "pathParam" in sk:
+        # The common case: a plain channel with one fixed Signal K path.
+        path = signalk_info["path"]
+        if "pathParam" in signalk_info:
+            # e.g. "electrical.batteries.{id}.voltage" - fill in which
+            # battery this reading belongs to.
             path = path.format(id=battery_id)
-        out[path] = _apply_transform(value, transform) if value is not None else None
 
-    if depth_seen:
-        for priority, value, sk in sorted(depth_seen.values(), key=lambda t: t[0]):
-            if value is not None:
-                out[depth_path] = _apply_transform(value, sk["transform"])
-                break
+        if value is None:
+            result[path] = None
+        else:
+            result[path] = _apply_transform(value, transform)
 
-    return out
+    if depth_candidates:
+        winning_depth = _pick_lowest_priority_reading(depth_candidates)
+        if winning_depth is not None:
+            result[depth_path] = winning_depth
+
+    return result
 
 
 # ── master reference table ──────────────────────────────────────────────────
 
+def _strip_suffix(text: str, suffix: str) -> str:
+    """Return text with suffix removed from the end, if present; otherwise
+    return text unchanged. (Python's built-in str.removesuffix() would do
+    this in one call, but this project supports Python 3.7+, which predates
+    that method.)
+    """
+    if text.endswith(suffix):
+        return text[:-len(suffix)]
+    return text
+
+
 def channel_map() -> dict:
-    out = {}
-    for cid, name in sorted(CHANNEL_LOOKUP.items()):
-        ch = _CHANNELS.get(f"0x{cid:02X}", {})
-        sk = ch.get("signalk")
-        if sk is None:
-            path, unit, kind = f"bandg.unknown.0x{cid:02X}", "", "unknown"
-        elif sk.get("drop"):
-            path, unit, kind = "—", "", "drop"
-        elif "collapsedInto" in sk:
-            path, unit, kind = f"→ {sk['collapsedInto']}", "", "collapsed"
-        elif "fallbackGroup" in sk:
-            path, unit, kind = sk["path"], sk.get("unit", ""), "standard(depth fallback)"
-        elif sk["transform"]["type"] == "overrideEnum":
-            path, unit, kind = sk["path"], sk.get("unit", ""), "standard"
-        elif "routedBy" in sk:
-            m = sk["routes"]["°M"]["path"]
-            stem = m[:-len("Magnetic")] if m.endswith("Magnetic") else m
-            path, unit, kind = f"{stem}{{Magnetic,True}}", sk.get("unit", ""), "routed(M/T)"
-        elif sk["path"].startswith("bandg."):
-            path, unit, kind = sk["path"], sk.get("unit", ""), "vendor"
+    """Build a human-readable reference table: for every known channel id,
+    its B&G name, Signal K path, unit, and a "kind" describing how it's
+    handled (standard / vendor / routed / depth fallback / collapsed / drop /
+    unknown). Used to generate docs/channel_map.md - see
+    docs/generate_channel_map.py.
+    """
+    result = {}
+    for channel_id, name in sorted(CHANNEL_LOOKUP.items()):
+        channel_id_hex = f"0x{channel_id:02X}"
+        channel_info = _CHANNELS.get(channel_id_hex, {})
+        signalk_info = channel_info.get("signalk")
+
+        if signalk_info is None:
+            path = f"bandg.unknown.0x{channel_id:02X}"
+            unit = ""
+            kind = "unknown"
+
+        elif signalk_info.get("drop"):
+            path = "—"
+            unit = ""
+            kind = "drop"
+
+        elif "collapsedInto" in signalk_info:
+            path = f"→ {signalk_info['collapsedInto']}"
+            unit = ""
+            kind = "collapsed"
+
+        elif "fallbackGroup" in signalk_info:
+            path = signalk_info["path"]
+            unit = signalk_info.get("unit", "")
+            kind = "standard(depth fallback)"
+
+        elif signalk_info["transform"]["type"] == "overrideEnum":
+            path = signalk_info["path"]
+            unit = signalk_info.get("unit", "")
+            kind = "standard"
+
+        elif "routedBy" in signalk_info:
+            magnetic_path = signalk_info["routes"]["°M"]["path"]
+            # e.g. "navigation.headingMagnetic" -> "navigation.heading", so
+            # the reference table can show one row covering both the
+            # Magnetic and True variants: "navigation.heading{Magnetic,True}".
+            path_stem = _strip_suffix(magnetic_path, "Magnetic")
+            path = f"{path_stem}{{Magnetic,True}}"
+            unit = signalk_info.get("unit", "")
+            kind = "routed(M/T)"
+
+        elif signalk_info["path"].startswith("bandg."):
+            path = signalk_info["path"]
+            unit = signalk_info.get("unit", "")
+            kind = "vendor"
+
         else:
-            path, unit, kind = sk["path"], sk.get("unit", ""), "standard"
-        out[cid] = {"name": name, "path": path, "unit": unit, "kind": kind}
-    return out
+            path = signalk_info["path"]
+            unit = signalk_info.get("unit", "")
+            kind = "standard"
+
+        result[channel_id] = {"name": name, "path": path, "unit": unit, "kind": kind}
+
+    return result
