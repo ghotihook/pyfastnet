@@ -126,3 +126,105 @@ git checkout experiment/schema-interpreter
 Key files: `fastnet_decoder/interpreter.py` (start with its module
 docstring), `fastnet_decoder/data/fastnet.json` +
 `fastnet_decoder/data/README.md`, `docs/protocol.md`.
+
+---
+
+# Update — 2026-09-05: decision reached, **go schema**
+
+The sections above are preserved as written. This section records what changed
+after a full comparative analysis of `main` vs this branch. Where the two
+conflict, this section is current.
+
+## Verdict
+
+**Merge this branch.** Not yet executed — the branch is still unmerged.
+
+Agreed path: schema validator -> merge to main -> bump to **3.2.0** (externally
+nothing changes, but the internals and the new `data/` payload warrant a minor,
+not a patch) -> run `fastnet2ip` against merged main **before** publishing to PyPI.
+
+## What was measured
+
+Both implementations were run over all eight captures in `temp/`:
+
+- **Output is byte-identical.** 9,322 frames — every decode, every Signal K
+  projection, the full `channel_map()`, and `unit_for()` for every emitted path
+  compare equal. Not "tests pass"; the actual decode products.
+- **Public API is character-for-character identical** (same nine exports).
+- **Performance difference is irrelevant.** main 108ms vs branch 124ms best-of-7
+  over the corpus (~11.6 vs ~13.3 us/frame); cold import 31 vs 32ms. FastNet
+  runs at a few hundred frames/sec.
+- **Executable Python drops 34%** (783 -> 515 lines). The "1148 replaces 1090"
+  framing is misleading — 359 of the new lines are docstrings that didn't exist.
+- **Schema fit is excellent.** 113 of 114 channels are pure declarative data
+  (58 `scale`, 32 no-transform, 15 `identity`, 6 `drop`, 2 `affine`). Only
+  autopilot `0xB5` needs a bespoke escape hatch.
+
+## Gate status (supersedes "Before merging to main" above)
+
+1. **Real RE session — REFRAMED.** The original gate tests the wrong workflow.
+   Git history of the old files: **38 commits touched decode logic vs 10
+   table-only**, and 29 modified `decode_format_and_data` itself. The real work
+   here has always been sign conventions, layout semantics and format
+   corrections — not adding channels. The sharper gate is: *take a real sign or
+   layout bug and fix it end-to-end through the schema.* Still open, no longer
+   blocking.
+2. **`fastnet2ip` imports — CLEARED.** It imports only the public top-level API
+   (`FrameBuffer`, `set_log_level`, `unit_for`, `logger`), never the deleted
+   internal modules. This migration will not break it.
+3. **Second-language spike — NOT A GATE.** It proves nothing about whether the
+   *Python* library should ship this way. Do it whenever it's interesting.
+4. **Schema validation — STILL THE ONE REAL GATE.** This is the single thing the
+   migration genuinely made worse: a bad edit to a Python dict was at least
+   syntax-checked at import; a bad `fastnet.json` edit surfaces as a runtime
+   `KeyError` in a library `fastnet2ip` depends on. Close this before merging.
+
+## Why the decision went this way
+
+Not ergonomics — the churn finding above actually argues the *common* change got
+marginally harder. That cost is accepted knowingly, because it is small per
+occurrence.
+
+The deciding argument is conceptual: **FastNet is a fixed external artifact being
+discovered, not a system being designed.** B&G defined it decades ago and burned
+it into instruments. For a discovered constant, the right primary artifact is a
+*description* of the thing; code that embodies protocol knowledge is the wrong
+shape. Portability to other languages is a free consequence of a correct
+description, not the justification for one.
+
+It also puts the protocol where the maintainer's expertise applies: whether
+heel-to-port is negative is a sailing question, checkable against an instrument,
+not a Python question buried in an `elif` branch.
+
+The "premature commitment" worry in the Honest Assessment above is defused by
+reversibility: main's files are in git history, the API is identical, and the
+schema is proven complete because it reproduces the entire corpus exactly.
+
+## A gap this analysis found (not a merge blocker)
+
+Cross-referencing every captured frame in `tests/` against the schema:
+
+```
+channels with a real-frame test    : 41 of 114  (36%)
+channels with NO evidence anywhere : 73
+```
+
+Most of the 73 are **unexercised, not neglected** — waypoint/route channels,
+`Linear 1`-`16`, `Remote 0`-`9`, barometric pressure, air temperature: things
+the capture boat never produced. But in the schema all 114 look identical, so a
+claim confirmed against a live display is indistinguishable from a guess. That
+invisibility is what let the 0x07 MSB bug live for months.
+
+The fix is **not** hand-written `confidence:` fields in `fastnet.json` — an
+asserted flag is inert, goes stale silently, and recreates the
+two-sources-of-truth problem this migration exists to eliminate. Provenance
+belongs in the test suite, because a test is executable and re-verifies itself.
+Confidence should be **derived** and regenerated on demand, the way
+`docs/channel_map.md` already is. A `tools/coverage.py` doing exactly that was
+proposed and deliberately deferred.
+
+## Housekeeping
+
+Stale worktree at `.claude/worktrees/inspiring-moser-6d13d7` (branch
+`claude/inspiring-moser-6d13d7`, 27 commits behind main, last commit "Update
+setup.py") looks abandoned and is safe to prune.
