@@ -34,8 +34,11 @@ decode is byte-identical to 3.1.0.
   as a name. The constant form is what the README documents, and it previously raised
   `AttributeError`.
 
-### Note
+### Packaging
 - No runtime dependency was added; `data/fastnet.json` ships inside the package.
+- `requires-python` stays `>=3.7`, now enforced by `tests/test_python_compatibility.py`:
+  the shipped modules must parse under the 3.7 grammar, avoid builtin generics, and import
+  only long-standing stdlib. Added the Python 3.14 classifier and a `Changelog` project URL.
 
 ## [3.1.0] — 2026-07-22
 

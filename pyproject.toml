@@ -24,6 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Communications",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
@@ -32,6 +33,7 @@ dependencies = []
 [project.urls]
 Homepage = "https://github.com/ghotihook/pyfastnet"
 Repository = "https://github.com/ghotihook/pyfastnet"
+Changelog = "https://github.com/ghotihook/pyfastnet/blob/main/CHANGELOG.md"
 Issues = "https://github.com/ghotihook/pyfastnet/issues"
 
 [project.optional-dependencies]
