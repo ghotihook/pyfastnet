@@ -119,7 +119,7 @@ unit_for("navigation.position")             # "deg"
 ```
 
 The master reference — every B&G channel number → name → Signal K path + unit — is
-`channel_map()`, derived from the projection tables so it can't drift:
+`channel_map()`, derived from the protocol schema so it can't drift:
 
 ```python
 from fastnet_decoder import channel_map
@@ -128,9 +128,7 @@ channel_map()[0x41]
 #  'unit': 'm/s', 'kind': 'standard'}
 ```
 
-It is rendered as a table in [`docs/channel_map.md`](docs/channel_map.md). The design
-rationale, `bandg.*` namespace, Magnetic/True routing, and open TBCs are in
-[`docs/v3_signalk_mapping.md`](docs/v3_signalk_mapping.md).
+It is rendered as a table in [`docs/channel_map.md`](docs/channel_map.md).
 
 ### Position
 
@@ -178,6 +176,19 @@ set_log_level(logging.DEBUG)
 fb.get_buffer_size()      # bytes currently in buffer
 fb.get_buffer_contents()  # hex string of buffer contents
 ```
+
+## Documentation
+
+Each file has one job, so nothing is documented in two places:
+
+| Document | What's in it |
+|---|---|
+| [`docs/protocol.md`](docs/protocol.md) | The FastNet **wire protocol**, language-agnostic — frame envelope, checksum, format templates, segment encoding. Read this first if you're porting the decoder. |
+| [`fastnet_decoder/data/fastnet.json`](fastnet_decoder/data/fastnet.json) | The protocol **as data** — the single source of truth. Channel names, byte layouts, Signal K mappings. |
+| [`fastnet_decoder/data/README.md`](fastnet_decoder/data/README.md) | How to **read and edit** that schema file. |
+| [`docs/channel_map.md`](docs/channel_map.md) | The full **channel → name → path → unit** table. Generated — don't hand-edit. |
+| [`docs/v3_signalk_mapping.md`](docs/v3_signalk_mapping.md) | **Why** the Signal K mapping is shaped as it is — the `bandg.*` namespace, Magnetic/True routing, open TBCs. Reasoning only; the mapping itself is in the schema. |
+| [`docs/architecture.md`](docs/architecture.md) | Why the protocol is stored as data rather than code, what that cost, and what's still open. |
 
 ## Acknowledgments
 
