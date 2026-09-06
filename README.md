@@ -5,10 +5,11 @@ instruments. Feed it raw bytes from the Fastnet bus and it handles
 synchronisation, checksum validation, and decoding — returning instrument data as
 **Signal K paths in SI units**, ready for further processing.
 
-> **v3.0 changes the output format.** Decoded frames are now `{signalk_path:
-> SI_value}` (e.g. `navigation.speedThroughWater = 3.6`) instead of the v2
-> name-keyed `{value, display_text, layout}` dicts. See **Output format** below.
-> The full v2-style decode is still available via `FrameBuffer(project=False)`.
+> **Upgrading from v2?** v3.0 changed the output format to `{signalk_path: SI_value}`
+> (e.g. `navigation.speedThroughWater = 3.6`) from the v2 name-keyed
+> `{value, display_text, layout}` dicts — see **Output format** below. The full v2-style
+> decode is still available via `FrameBuffer(project=False)`. Release history is in
+> [CHANGELOG.md](CHANGELOG.md).
 
 Developed for personal use and published for general interest. Runs on Raspberry
 Pi, macOS, or Linux.
@@ -187,8 +188,9 @@ Each file has one job, so nothing is documented in two places:
 | [`fastnet_decoder/data/fastnet.json`](fastnet_decoder/data/fastnet.json) | The protocol **as data** — the single source of truth. Channel names, byte layouts, Signal K mappings. |
 | [`fastnet_decoder/data/README.md`](fastnet_decoder/data/README.md) | How to **read and edit** that schema file. |
 | [`docs/channel_map.md`](docs/channel_map.md) | The full **channel → name → path → unit** table. Generated — don't hand-edit. |
-| [`docs/v3_signalk_mapping.md`](docs/v3_signalk_mapping.md) | **Why** the Signal K mapping is shaped as it is — the `bandg.*` namespace, Magnetic/True routing, open TBCs. Reasoning only; the mapping itself is in the schema. |
+| [`docs/signalk-design.md`](docs/signalk-design.md) | **Why** the Signal K mapping is shaped as it is — the `bandg.*` namespace, Magnetic/True routing, open TBCs. Reasoning only; the mapping itself is in the schema. |
 | [`docs/architecture.md`](docs/architecture.md) | Why the protocol is stored as data rather than code, what that cost, and what's still open. |
+| [`CHANGELOG.md`](CHANGELOG.md) | What changed in each release, and how to migrate across the breaking ones. |
 
 ## Acknowledgments
 

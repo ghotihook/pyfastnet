@@ -39,7 +39,7 @@ Two consequences follow, and they matter more than the code change:
 1. **Derived documents cannot drift.** `channel_map()` and
    [`channel_map.md`](channel_map.md) are generated from the description, so there is
    nothing for them to disagree with. (When this migration landed, a hand-maintained copy
-   of those tables in [`v3_signalk_mapping.md`](v3_signalk_mapping.md) was found to have
+   of those tables in [`signalk-design.md`](signalk-design.md) was found to have
    drifted in twelve places — including one channel documented as mapped that was not.
    Those tables were removed; that file now holds only reasoning.)
 2. **Gaps become visible as gaps.** The protocol is now something you can ask questions

@@ -77,6 +77,21 @@ def test_validator_rejects_a_template_reading_past_its_record():
     assert any("outside this record" in e for e in errors)
 
 
+def test_protocol_doc_format_table_matches_the_schema():
+    # docs/protocol.md restates each format nibble's record size alongside prose
+    # explaining its layout. The prose isn't derivable, so the table stays — but
+    # the restated size must not drift from formatSizeMap.
+    doc = VALIDATOR.PROTOCOL_DOC.read_text(encoding="utf-8")
+    problems = VALIDATOR.check_protocol_doc(SCHEMA, doc)
+    assert not problems, "docs/protocol.md disagrees with the schema:\n  " + "\n  ".join(problems)
+
+
+def test_validator_catches_a_drifted_protocol_doc():
+    doc = "| `0x01` | 9 bytes | a plainly wrong size |\n"
+    problems = VALIDATOR.check_protocol_doc(SCHEMA, doc)
+    assert any("0x01" in p and "9 bytes" in p for p in problems)
+
+
 def test_validator_rejects_an_ambiguous_fallback_chain():
     # Depth resolves metres > feet > fathoms by fallbackPriority; a tie would
     # make which one wins undefined.

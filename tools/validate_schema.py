@@ -31,6 +31,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_PATH = REPO_ROOT / "fastnet_decoder" / "data" / "fastnet.json"
+PROTOCOL_DOC = REPO_ROOT / "docs" / "protocol.md"
 
 # ── what the interpreter requires of each format template ─────────────────────
 #
@@ -449,9 +450,43 @@ def _collect_emitted_paths(channels):
     return paths
 
 
+def check_protocol_doc(schema, doc_text):
+    """Cross-check docs/protocol.md's format-template table against the schema.
+
+    That table lists a record size per format nibble, which is also in
+    formatSizeMap - the one place a document still restates something the
+    schema owns. It is kept there because the prose beside it explains each
+    layout, which is not mechanically derivable. This check makes sure the
+    restated half cannot quietly drift, the way the channel tables in
+    docs/signalk-design.md did before 3.2.0.
+
+    Returns a list of problem strings (empty when the two agree).
+    """
+    sizes = schema.get("formatSizeMap", {})
+    rows = dict(re.findall(r"^\|\s*`(0x[0-9A-F]{2})`\s*\|\s*(\d+)\s*bytes?\s*\|",
+                           doc_text, re.M))
+    problems = []
+    for nibble, size in rows.items():
+        if nibble not in sizes:
+            problems.append(f"docs/protocol.md documents format {nibble}, which is "
+                            f"not in formatSizeMap")
+        elif sizes[nibble] != int(size):
+            problems.append(f"docs/protocol.md says format {nibble} is {size} bytes, "
+                            f"but formatSizeMap says {sizes[nibble]}")
+    for nibble in sizes:
+        if nibble not in rows:
+            problems.append(f"format {nibble} is in formatSizeMap but has no row in "
+                            f"docs/protocol.md's format-template table")
+    return problems
+
+
 def main():
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
     errors, warnings = validate(schema)
+
+    # The doc lives outside the package, so this runs only from a source checkout.
+    if PROTOCOL_DOC.exists():
+        errors.extend(check_protocol_doc(schema, PROTOCOL_DOC.read_text(encoding="utf-8")))
 
     for warning in warnings:
         print(f"warning: {warning}")

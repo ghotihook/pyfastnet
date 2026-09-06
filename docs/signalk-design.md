@@ -19,9 +19,8 @@ Everything below is the material that *isn't* derivable: why the namespace is sh
 way it is, which choices were made against real captured data, and what remains open.
 
 > **Note on history.** This file began as the pre-implementation spec for v3 and used to
-> carry its own copy of the channel tables. Those were removed in 3.2.0 after they were
-> found to have drifted from the implementation in twelve places — the schema is now the
-> single source of truth, and duplicating it here only recreated the problem.
+> carry its own copy of the channel tables. They were removed in 3.2.0 — see
+> [`architecture.md`](architecture.md) for why.
 
 The decoder emits a flat map of **`{ signalk_path: SI_value }`**, one canonical entry per
 physical quantity, in the unit Signal K defines for that path. No `display_text`, no
