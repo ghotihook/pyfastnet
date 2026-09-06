@@ -1,9 +1,9 @@
-"""Tests for the v3 Signal K projection (fastnet_decoder/signalk_map.py)."""
+"""Tests for the v3 Signal K projection (fastnet_decoder/interpreter.py)."""
 
 import math
 
-from fastnet_decoder import signalk_map as sk
-from fastnet_decoder.decode_fastnet import decode_frame
+from fastnet_decoder import interpreter as sk
+from fastnet_decoder import decode_frame
 from fastnet_decoder.frame_buffer import FrameBuffer
 
 

@@ -1,8 +1,8 @@
 import logging
 from .utils import calculate_checksum
-from .mappings import COMMAND_LOOKUP, IGNORED_COMMANDS
-from .decode_fastnet import decode_frame, decode_ascii_frame, decode_light_frame, probe_frame
-from . import signalk_map
+from .interpreter import COMMAND_LOOKUP, IGNORED_COMMANDS
+from .interpreter import decode_frame, decode_ascii_frame, decode_light_frame, probe_frame
+from . import interpreter
 from .logger import logger
 from queue import Queue, Full
 
@@ -113,7 +113,7 @@ class FrameBuffer:
             return
 
         if self.project:
-            values = signalk_map.project(decoded_frame)
+            values = interpreter.project(decoded_frame)
             if not values:
                 # every channel dropped / unmapped (e.g. Backlight, protocol) — nothing to emit
                 if logger.isEnabledFor(logging.DEBUG):

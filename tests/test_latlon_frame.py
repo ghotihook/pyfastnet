@@ -1,5 +1,5 @@
 import unittest
-from fastnet_decoder.decode_fastnet import decode_ascii_frame
+from fastnet_decoder import decode_ascii_frame
 
 
 class TestLatLonFrame(unittest.TestCase):
