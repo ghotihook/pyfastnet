@@ -13,13 +13,28 @@ if not logger.hasHandlers():
 logger.setLevel(DEFAULT_LOG_LEVEL)
 
 
-def set_log_level(level_name: str):
-    """Sets the log level dynamically at runtime."""
-    level = logging.getLevelName(level_name.upper())
+def set_log_level(level_name):
+    """Set the log level at runtime.
+
+    Accepts either a name ("DEBUG", "info") or one of the logging module's
+    own constants (logging.DEBUG). Both spellings appear in the wild — the
+    README documents the constant form — so both are supported.
+
+    Example:
+        set_log_level("DEBUG")          # by name
+        set_log_level(logging.DEBUG)    # by logging constant
+    """
+    if isinstance(level_name, int):
+        level = level_name
+        display = logging.getLevelName(level)
+    else:
+        display = str(level_name).upper()
+        level = logging.getLevelName(display)
+
     if not isinstance(level, int):
         logger.warning(
             f"Unknown log level '{level_name}'; keeping current level."
         )
         return
     logger.setLevel(level)
-    logger.info(f"Log level set to {level_name.upper()}.")
+    logger.info(f"Log level set to {display}.")
