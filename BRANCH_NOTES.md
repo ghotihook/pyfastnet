@@ -228,3 +228,105 @@ proposed and deliberately deferred.
 Stale worktree at `.claude/worktrees/inspiring-moser-6d13d7` (branch
 `claude/inspiring-moser-6d13d7`, 27 commits behind main, last commit "Update
 setup.py") looks abandoned and is safe to prune.
+
+---
+
+# Update — 2026-09-06: validation gate closed, merged, 3.2.0
+
+## Why the gate was real (measured, not assumed)
+
+Gate 4 above was argued from first principles. It was then tested: eight
+realistic schema edit mistakes, each run through the normal workflow — edit
+`fastnet.json`, regenerate `docs/channel_map.md`, run the suite.
+
+**Six of eight passed 154/154 silently.** Only two were caught, and both only
+because they broke a channel that happens to have a real-frame test (0x41
+boatspeed, 0x49 heading) — the 41-of-114 evidence boundary showing up as a
+live consequence.
+
+The important detail: four of the six *do* turn the suite red at first, via
+`test_channel_map.py::test_doc_is_in_sync`. That looks like protection but
+isn't — it detects that the channel list changed, not that it changed
+*wrongly*, and a correct new channel fails it too. Regenerating the doc (the
+documented, correct response) clears the failure and takes the mistake with
+it. The one signal you got was cleared by responding to it properly.
+
+Consequence when such an edit does reach a boat: `_apply_transform` raises
+`ValueError` on an unknown transform type and `KeyError` on a missing
+`factor` — not a slightly-wrong reading, a crash inside `project()`, in a
+library `fastnet2ip` depends on, the first time that channel appears.
+
+## What was added
+
+- `tools/validate_schema.py` — proofreads `fastnet.json` on its own terms:
+  does it say something `interpreter.py` could actually carry out? Checks
+  per-op required fields, byte indices against each record's declared size,
+  transform types against what `_apply_transform` implements, override names
+  against `_OVERRIDES` (imported, so it cannot drift), `channels` vs
+  `channelNames` agreement, `collapsedInto` targets, fallback-priority
+  uniqueness, `pathParam` placeholders, and canonical `0xNN` key form.
+  Run standalone: `python tools/validate_schema.py`.
+- `tests/test_schema_valid.py` — runs it in the normal suite (154 -> 161).
+
+Against the twelve structural mutations it was designed for, it catches
+twelve. It does *not* catch semantic errors (a removed route, a wrong scale
+factor, an inverted sign) — by design; those are questions about boats and
+the real-frame tests answer them. The two mechanisms are complementary.
+
+### Canonical-key check — a failure mode found while building it
+
+`interpreter.py` finds channels, templates and autopilot states by building
+`f"0x{value:02X}"` and string-matching it. A key written `"0x4a"` instead of
+`"0x4A"` therefore never matches: the channel still decodes, but silently
+loses its name and Signal K mapping and falls through to `bandg.unknown`.
+The shipped schema is fully canonical; the validator now enforces it.
+
+## Warnings the validator reports (all pre-existing, none blocking)
+
+1. `formatTemplates[0x09]` is `unsupported` and has **no `formatSizeMap`
+   entry**. `decode_frame` does `_FORMAT_SIZE_MAP.get(format_bits, 0)`, so if
+   a 0x09 record ever appeared the walker would consume zero data bytes and
+   read the rest of the frame misaligned — silent garbage, not an error.
+   Unreachable in captured data (0x09 has never been observed), so it is a
+   latent gap. **Left as-is deliberately**: inventing a size would be
+   inventing a protocol fact. The right fix is for the walker to abort a
+   frame on a nibble with no known size — a behaviour change, kept out of
+   this merge.
+2. `°T` is a routing destination for 0x49 Heading, 0x6D TWD and 0x84 Tidal
+   Set, but **no `segmentA` code produces the `°T` token**, so
+   `navigation.headingTrue`, `environment.wind.directionTrue` and
+   `environment.current.setTrue` can never be reached from real frames. The
+   existing test passes because it constructs the layout token directly.
+   Verified pre-existing on `main` (its segment table has `0x66: "°M"` and no
+   °T entry at all) — an undiscovered segment code, not a regression.
+   This is the schema approach doing its job: a gap in what's known became
+   visible as a gap.
+
+## Parity reconfirmed at merge time
+
+Not taken on trust from the earlier run. Both trees were driven over all
+eight captures, dumping rich decode + Signal K projection + `channel_map()` +
+`unit_for()` for every emitted path:
+
+```
+main   : 9,322 frames  sha256 ab8da2cf…
+branch : 9,322 frames  sha256 ab8da2cf…   identical
+```
+
+## Gate status
+
+1. Real RE session — open, non-blocking (reframed 2026-09-05).
+2. `fastnet2ip` imports — cleared.
+3. Second-language spike — not a gate.
+4. **Schema validation — CLOSED.**
+
+## Remaining
+
+- **Run `fastnet2ip` against merged main before publishing 3.2.0 to PyPI.**
+  Not yet done. This is the last step of the agreed path and PyPI has not
+  been touched.
+- `tools/coverage.py` (derive per-channel confidence from the test suite)
+  still deferred. On the evidence above it is arguably the higher-value
+  remaining item: the validator addresses malformed descriptions, coverage
+  addresses the 73 channels with no evidence at all.
+- Stale worktree `.claude/worktrees/inspiring-moser-6d13d7` still unpruned.

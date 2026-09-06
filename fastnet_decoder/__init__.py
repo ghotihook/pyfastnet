@@ -1,4 +1,4 @@
-__version__ = "3.1.0"
+__version__ = "3.2.0"
 
 from .frame_buffer import FrameBuffer
 from .interpreter import decode_frame, decode_ascii_frame, decode_light_frame

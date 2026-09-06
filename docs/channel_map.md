@@ -1,6 +1,6 @@
 # B&G channel → name → Signal K path (master reference)
 
-**Generated** from `fastnet_decoder.channel_map()` (pyfastnet 3.0.0). Do not hand-edit — regenerate with `python docs/generate_channel_map.py`.
+**Generated** from `fastnet_decoder.channel_map()` (pyfastnet 3.2.0). Do not hand-edit — regenerate with `python docs/generate_channel_map.py`.
 
 This is the authoritative map, derived from the projection tables so it stays in step with what `project()` actually emits. `kind`: *standard* = SK path, *vendor* = `bandg.*`, *routed(M/T)* = Magnetic|True chosen from layout, *collapsed* = redundant variant folded onto a sibling, *drop* = not emitted.
 
