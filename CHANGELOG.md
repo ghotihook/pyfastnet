@@ -10,7 +10,11 @@ after the fact from the tagged releases.
 A change that requires other-language implementations of the engine to change as well is
 marked **Engine change** — see [`docs/porting.md`](docs/porting.md).
 
-## [Unreleased]
+## [3.2.1] — 2026-09-14
+
+3.2.0 was tagged but never published to PyPI, so this is the first PyPI release with the
+protocol stored as data — see 3.2.0 below. Output and API are unchanged, except that a
+frame which would have crashed 3.2.0 now decodes.
 
 ### Fixed
 - A Broadcast frame containing a record in a format with no known byte layout (format
@@ -181,6 +185,7 @@ A large correctness and test release.
 
 First tagged release on PyPI.
 
+[3.2.1]: https://github.com/ghotihook/pyfastnet/releases/tag/v3.2.1
 [3.2.0]: https://github.com/ghotihook/pyfastnet/releases/tag/v3.2.0
 [3.1.0]: https://github.com/ghotihook/pyfastnet/releases/tag/v3.1.0
 [3.0.0]: https://github.com/ghotihook/pyfastnet/releases/tag/v3.0.0

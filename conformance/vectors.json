@@ -1,7 +1,7 @@
 {
  "meta": {
   "description": "Expected output of a FastNet decoder, produced by pyfastnet, the reference implementation. See conformance/README.md.",
-  "pyfastnet_version": "3.2.0",
+  "pyfastnet_version": "3.2.1",
   "schema": "fastnet_decoder/data/fastnet.json",
   "schema_sha256": "fda78ad1886f7047c06e39b443e651e00c59b7c74d5e6f194477f81964e58cf8",
   "battery_id": "house"
