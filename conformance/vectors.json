@@ -1,0 +1,2446 @@
+{
+ "meta": {
+  "description": "Expected output of a FastNet decoder, produced by pyfastnet, the reference implementation. See conformance/README.md.",
+  "pyfastnet_version": "3.2.0",
+  "schema": "fastnet_decoder/data/fastnet.json",
+  "schema_sha256": "fda78ad1886f7047c06e39b443e651e00c59b7c74d5e6f194477f81964e58cf8",
+  "battery_id": "house"
+ },
+ "streams": [
+  {
+   "capture": "captures/big.txt",
+   "frames": 954,
+   "frames_sha256": "28beeaf2f6c0209b0d7a63bb63a35abbd3d9dcfd43d547082584157fe750a693",
+   "first_frames": [
+    "ff010a01f541910000420a00000000e2",
+    "ff050601f57505012d1d0932",
+    "ff011c01e3c15700800049c247008000f1c357008000288184ff000000d308cc9b9d"
+   ],
+   "frames_by_command": {
+    "0x01": 906,
+    "0x03": 31,
+    "0x0E": 9,
+    "0xD1": 4,
+    "0xD5": 4
+   }
+  },
+  {
+   "capture": "captures/big_with_ap_actions.txt",
+   "frames": 2115,
+   "frames_sha256": "b92a2e43032c0d139c372b48b96c76df234a71a8d3038a2bed85c470b5572fc7",
+   "first_frames": [
+    "ff011801e7cd840000acc7cf84ff0000001f17005c00171e17007400494f",
+    "ff010c01f3649100003621001d373100002f",
+    "ff050c01ef4e0a06330616520a46bd46bdf1"
+   ],
+   "frames_by_command": {
+    "0x01": 1951,
+    "0x03": 67,
+    "0x0E": 17,
+    "0xCB": 1,
+    "0xD1": 9,
+    "0xD3": 15,
+    "0xD4": 13,
+    "0xD5": 9,
+    "0xDC": 2,
+    "0xFD": 31
+   }
+  },
+  {
+   "capture": "captures/example1_fastnet_data.txt",
+   "frames": 2719,
+   "frames_sha256": "3aa7add59139d504eb7a8d37a3baf707737fb2923b36b55448158b81affa6652",
+   "first_frames": [
+    "ff051401e78d81055f3b310000340600bee8e89b0600bee8e82b",
+    "ff120e01e00b038c004908cd3d4a0ae1a5252fdd",
+    "ff121c01d2b5015004a606bee8e800af06bee8e8005306bee8e8007606bee8e80088"
+   ],
+   "frames_by_command": {
+    "0x01": 2541,
+    "0x03": 89,
+    "0x0E": 23,
+    "0x20": 2,
+    "0x21": 1,
+    "0xCD": 1,
+    "0xCE": 1,
+    "0xCF": 5,
+    "0xD0": 8,
+    "0xD1": 12,
+    "0xD2": 2,
+    "0xD3": 6,
+    "0xD4": 9,
+    "0xD5": 12,
+    "0xD6": 2,
+    "0xDE": 1,
+    "0xDF": 2,
+    "0xFD": 2
+   }
+  },
+  {
+   "capture": "captures/example2_fastnet_data.txt",
+   "frames": 2907,
+   "frames_sha256": "aff51aaa27f6b49f0604d150b161acd907cd80169b92c7698f971cf1608963c3",
+   "first_frames": [
+    "ff051801e34e0a026802154d61003d4f61001f520a168f168f5113201132",
+    "ff010a01f541910000420a00000000e2",
+    "ff011c01e3c1570080000fc25700800032c357008000088184ff000000d308cc2918"
+   ],
+   "frames_by_command": {
+    "0x01": 2707,
+    "0x03": 94,
+    "0x0E": 24,
+    "0xD1": 12,
+    "0xD3": 25,
+    "0xD4": 2,
+    "0xD5": 12,
+    "0xDC": 2,
+    "0xFD": 29
+   }
+  },
+  {
+   "capture": "captures/heel-port.txt",
+   "frames": 168,
+   "frames_sha256": "d35f221093ca71d4022daff18a6afb48dc49dbb93364b95e2ec6fb8afdd17326",
+   "first_frames": [
+    "ff010a01f541910000420a00000000e2",
+    "ff050601f57505012d1d0932",
+    "ff011c01e3c15700800049c247008000f1c357008000288184ff000000d308cc9b9d"
+   ],
+   "frames_by_command": {
+    "0x01": 159,
+    "0x03": 5,
+    "0x0E": 2,
+    "0xD1": 1,
+    "0xD5": 1
+   }
+  },
+  {
+   "capture": "captures/heel-stb.txt",
+   "frames": 427,
+   "frames_sha256": "89bcccc47ced020d80afdcce7a3acd52aeecbd46579eb4c40e6699494bddb0f6",
+   "first_frames": [
+    "ff050601f57505011f25320f",
+    "ff010a01f541910000420a00000000e2",
+    "ff011c01e3c1570080004fc24700800102c3570080002b8184ff000000d308cc63ba"
+   ],
+   "frames_by_command": {
+    "0x01": 409,
+    "0x03": 13,
+    "0x0E": 3,
+    "0xD1": 1,
+    "0xD5": 1
+   }
+  },
+  {
+   "capture": "captures/trim-neg.txt",
+   "frames": 165,
+   "frames_sha256": "aaf0e179f81fc9d8253dcfc2a3166792dc4479bf585e2ea7c7f5bb29f0a2e5ac",
+   "first_frames": [
+    "ff051401e74a0a39a839a8824700d800006908cc519a08cc3419",
+    "ff010a01f541910000420a00000000e2",
+    "ff120e01e00b030c024908cc514a0a395f0b2956"
+   ],
+   "frames_by_command": {
+    "0x01": 155,
+    "0x03": 6,
+    "0x0E": 2,
+    "0xD1": 1,
+    "0xD5": 1
+   }
+  },
+  {
+   "capture": "captures/trim-pos.txt",
+   "frames": 193,
+   "frames_sha256": "0c3e970f9588d872e3cbe73974f16f2c5fdb86fb81e5a291ad3b85226a32fb35",
+   "first_frames": [
+    "ff051401e74a0a24542454824700d800006908cc339a08cc66d7",
+    "ff050601f54a0a24542454bc",
+    "ff62080196e913001aeb530004a8"
+   ],
+   "frames_by_command": {
+    "0x01": 182,
+    "0x03": 7,
+    "0x0E": 2,
+    "0xD1": 1,
+    "0xD5": 1
+   }
+  }
+ ],
+ "frames": [
+  {
+   "id": "f001",
+   "source": "captures/big.txt",
+   "frame": "ff010a01f541910000420a00000000e2",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Boatspeed (Knots)": {
+      "channel_id": "0x41",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Boatspeed (Raw)": {
+      "channel_id": "0x42",
+      "value": 0.0,
+      "display_text": "0 / 0",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.speedThroughWater": 0.0,
+    "bandg.navigation.rawSpeedThroughWater": 0.0
+   }
+  },
+  {
+   "id": "f002",
+   "source": "captures/big.txt",
+   "frame": "ff050601f57505012d1d0932",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Timer": {
+      "channel_id": "0x75",
+      "value": 163749.0,
+      "display_text": "1 day, 21:29:09",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.time.timer": 163749.0
+   }
+  },
+  {
+   "id": "f003",
+   "source": "captures/big.txt",
+   "frame": "ff011c01e3c15700800049c247008000f1c357008000288184ff000000d308cc9b9d",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Depth (Meters)": {
+      "channel_id": "0xC1",
+      "value": 7.3,
+      "display_text": "7.3",
+      "layout": null
+     },
+     "Depth (Feet)": {
+      "channel_id": "0xC2",
+      "value": 24.1,
+      "display_text": "24.1",
+      "layout": null
+     },
+     "Depth (Fathoms)": {
+      "channel_id": "0xC3",
+      "value": 4.0,
+      "display_text": "4.0",
+      "layout": null
+     },
+     "Dead Reckoning Distance": {
+      "channel_id": "0x81",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Dead Reckoning Course": {
+      "channel_id": "0xD3",
+      "value": 155.0,
+      "display_text": "155°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.deadReckoning.distance": 0.0,
+    "bandg.navigation.deadReckoning.course": 2.705260340591211,
+    "environment.depth.belowTransducer": 7.3
+   }
+  },
+  {
+   "id": "f004",
+   "source": "captures/big.txt",
+   "frame": "ff011801e7cd840012d062cf84ff0000001f060040dab81e170074001663",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Stored Log (NM)": {
+      "channel_id": "0xCD",
+      "value": 12329.94,
+      "display_text": "12329.94",
+      "layout": null
+     },
+     "Trip Log (NM)": {
+      "channel_id": "0xCF",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Sea Temperature (°C)": {
+      "channel_id": "0x1F",
+      "value": null,
+      "display_text": " -2C",
+      "layout": null
+     },
+     "Sea Temperature (°F)": {
+      "channel_id": "0x1E",
+      "value": 22.0,
+      "display_text": "22°F",
+      "layout": "[data]°F"
+     }
+    }
+   },
+   "signalk": {
+    "navigation.log": 22835048.880000003,
+    "navigation.trip.log": 0.0,
+    "environment.water.temperature": null
+   }
+  },
+  {
+   "id": "f005",
+   "source": "captures/big.txt",
+   "frame": "ff010c01f3649100003621000e373100003e",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Average Speed (Knots)": {
+      "channel_id": "0x64",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Depth Sounder Receiver Gain": {
+      "channel_id": "0x36",
+      "value": 14.0,
+      "display_text": "14",
+      "layout": null
+     },
+     "Depth Sounder Noise": {
+      "channel_id": "0x37",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.speedThroughWaterAverage": 0.0
+   }
+  },
+  {
+   "id": "f006",
+   "source": "captures/big.txt",
+   "frame": "ff051401e74a0a6de96de9824700d800006908cc9b9a08cd63b5",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Heading (Raw)": {
+      "channel_id": "0x4A",
+      "value": 28137.0,
+      "display_text": "28137 / 28137",
+      "layout": null
+     },
+     "Leeway": {
+      "channel_id": "0x82",
+      "value": 0.0,
+      "display_text": "L0.0",
+      "layout": "L[data]"
+     },
+     "Course (HDG + Leeway)": {
+      "channel_id": "0x69",
+      "value": 155.0,
+      "display_text": "155°M",
+      "layout": "°M"
+     },
+     "Heading on Next Tack": {
+      "channel_id": "0x9A",
+      "value": 355.0,
+      "display_text": "355°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.rawHeading": 28137.0,
+    "navigation.leewayAngle": 0.0,
+    "bandg.navigation.courseThroughWater": 2.705260340591211,
+    "performance.tackMagnetic": 6.19591884457987
+   }
+  },
+  {
+   "id": "f007",
+   "source": "captures/big.txt",
+   "frame": "ff120e01e00b030c024908cc9b4a0a6e0d3fd747",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Rudder Angle": {
+      "channel_id": "0x0B",
+      "value": 2.0,
+      "display_text": "2=",
+      "layout": "[data]="
+     },
+     "Heading": {
+      "channel_id": "0x49",
+      "value": 155.0,
+      "display_text": "155°M",
+      "layout": "°M"
+     },
+     "Heading (Raw)": {
+      "channel_id": "0x4A",
+      "value": 28173.0,
+      "display_text": "28173 / 16343",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.rudderAngle": 0.03490658503988659,
+    "navigation.headingMagnetic": 2.705260340591211,
+    "bandg.navigation.rawHeading": 28173.0
+   }
+  },
+  {
+   "id": "f008",
+   "source": "captures/big.txt",
+   "frame": "ff121801d64606bee8e800ba0600627200b406bee8e8000606006272006a",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Speed Fixed (Knots)": {
+      "channel_id": "0x46",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0xBA)": {
+      "channel_id": "0xBA",
+      "value": null,
+      "display_text": " no ",
+      "layout": null
+     },
+     "Unknown (0xB4)": {
+      "channel_id": "0xB4",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0x06)": {
+      "channel_id": "0x06",
+      "value": null,
+      "display_text": " no ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.steering.autopilot.fixedSpeed": null
+   }
+  },
+  {
+   "id": "f009",
+   "source": "captures/big.txt",
+   "frame": "ff051401e78d8105263b3101fa344700f300cc9b4700a000099b",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 13.18,
+      "display_text": "13.18",
+      "layout": null
+     },
+     "Linear 4": {
+      "channel_id": "0x3B",
+      "value": 506.0,
+      "display_text": "506",
+      "layout": null
+     },
+     "Heel Angle": {
+      "channel_id": "0x34",
+      "value": -20.4,
+      "display_text": "H20.4",
+      "layout": "H[data]"
+     },
+     "Fore/Aft Trim": {
+      "channel_id": "0x9B",
+      "value": -0.9,
+      "display_text": "-0.9",
+      "layout": "-[data]"
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 13.18,
+    "bandg.unknown.0x3B": 506.0,
+    "navigation.attitude.roll": -0.3560471674068432,
+    "navigation.attitude.pitch": -0.015707963267948967
+   }
+  },
+  {
+   "id": "f010",
+   "source": "captures/big.txt",
+   "frame": "1251020e8d21429d",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f011",
+   "source": "captures/big.txt",
+   "frame": "ff051801e34e0a030a02bd4d61004a4f610026520ac4bbc4bb5113a0525e",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Apparent Wind Speed (Raw)": {
+      "channel_id": "0x4E",
+      "value": 778.0,
+      "display_text": "778 / 701",
+      "layout": null
+     },
+     "Apparent Wind Speed (Knots)": {
+      "channel_id": "0x4D",
+      "value": 7.4,
+      "display_text": "7.4",
+      "layout": null
+     },
+     "Apparent Wind Speed (m/s)": {
+      "channel_id": "0x4F",
+      "value": 3.8,
+      "display_text": "3.8",
+      "layout": null
+     },
+     "Apparent Wind Angle (Raw)": {
+      "channel_id": "0x52",
+      "value": -15173.0,
+      "display_text": "-15173 / -15173",
+      "layout": null
+     },
+     "Apparent Wind Angle": {
+      "channel_id": "0x51",
+      "value": -82.0,
+      "display_text": "-82",
+      "layout": "-[data]"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.wind.rawSpeedApparent": 778.0,
+    "environment.wind.speedApparent": 3.8,
+    "bandg.wind.rawAngleApparent": -15173.0,
+    "environment.wind.angleApparent": -1.4311699866353502
+   }
+  },
+  {
+   "id": "f012",
+   "source": "captures/big.txt",
+   "frame": "ff121c01d2b5015001a606bee8e800af06bee8e8005306bee8e8007606bee8e8008b",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 20481.0,
+      "display_text": "Standby",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Autopilot Off Course": {
+      "channel_id": "0xAF",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Target TWA": {
+      "channel_id": "0x53",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0x76)": {
+      "channel_id": "0x76",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "standby",
+    "steering.autopilot.target.headingMagnetic": null,
+    "bandg.steering.autopilot.offCourse": null,
+    "performance.targetAngle": null
+   }
+  },
+  {
+   "id": "f013",
+   "source": "captures/big.txt",
+   "frame": "ff62080196e9130037eb5300008f",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 55.0,
+      "display_text": "55",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.0,
+      "display_text": "0.0",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 0.9599310885968813,
+    "navigation.speedOverGround": 0.0
+   }
+  },
+  {
+   "id": "f014",
+   "source": "captures/big.txt",
+   "frame": "ff620801968403661a8383bb0632",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "Broadcast",
+    "values": {
+     "Tidal Set": {
+      "channel_id": "0x84",
+      "value": 26.0,
+      "display_text": "26°M",
+      "layout": "°M"
+     },
+     "Tidal Drift": {
+      "channel_id": "0x83",
+      "value": 0.06,
+      "display_text": "d0.06",
+      "layout": "d[data]"
+     }
+    }
+   },
+   "signalk": {
+    "environment.current.setMagnetic": 0.4537856055185257,
+    "environment.current.drift": 0.03086664
+   }
+  },
+  {
+   "id": "f015",
+   "source": "captures/big.txt",
+   "frame": "ff62150387474e313634362e3631205331373932302e3233204597",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "LatLon",
+    "values": {
+     "LatLon": {
+      "channel_id": "0x47",
+      "value": null,
+      "display_text": "1646.61 S17920.23 E",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.position": {
+     "latitude": -16.776833333333332,
+     "longitude": 179.33716666666666
+    }
+   }
+  },
+  {
+   "id": "f016",
+   "source": "captures/big.txt",
+   "frame": "ff051001eb1d5101071c51031b871103df8611fffff0",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Air Temperature (°C)": {
+      "channel_id": "0x1D",
+      "value": 26.3,
+      "display_text": "26.3",
+      "layout": null
+     },
+     "Air Temperature (°F)": {
+      "channel_id": "0x1C",
+      "value": 79.5,
+      "display_text": "79.5",
+      "layout": null
+     },
+     "Barometric Pressure": {
+      "channel_id": "0x87",
+      "value": 991.0,
+      "display_text": "991",
+      "layout": null
+     },
+     "Barometric Pressure Trend": {
+      "channel_id": "0x86",
+      "value": -1.0,
+      "display_text": "-1",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "environment.outside.temperature": 299.45,
+    "environment.outside.pressure": 99100.0,
+    "bandg.environment.pressureTrend": -1.0
+   }
+  },
+  {
+   "id": "f017",
+   "source": "captures/big.txt",
+   "frame": "ff051601e55561004b566100265913a8517f87009900006d08cc4994",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "True Wind Speed (Knots)": {
+      "channel_id": "0x55",
+      "value": 7.5,
+      "display_text": "7.5",
+      "layout": null
+     },
+     "True Wind Speed (m/s)": {
+      "channel_id": "0x56",
+      "value": 3.8,
+      "display_text": "3.8",
+      "layout": null
+     },
+     "True Wind Angle": {
+      "channel_id": "0x59",
+      "value": -81.0,
+      "display_text": "-81",
+      "layout": "=[data]"
+     },
+     "Velocity Made Good (Knots)": {
+      "channel_id": "0x7F",
+      "value": 0.0,
+      "display_text": "u0.00",
+      "layout": "u[data]"
+     },
+     "True Wind Direction": {
+      "channel_id": "0x6D",
+      "value": 73.0,
+      "display_text": "73°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "environment.wind.speedTrue": 3.8,
+    "environment.wind.angleTrueWater": -1.413716694115407,
+    "performance.velocityMadeGood": 0.0,
+    "environment.wind.directionMagnetic": 1.2740903539558606
+   }
+  },
+  {
+   "id": "f018",
+   "source": "captures/big.txt",
+   "frame": "ff620a0194e90700000162eb5300006f",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 354.0,
+      "display_text": "354",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.0,
+      "display_text": "0.0",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 6.178465552059927,
+    "navigation.speedOverGround": 0.0
+   }
+  },
+  {
+   "id": "f019",
+   "source": "captures/big.txt",
+   "frame": "511210d5b868af2100002c585445204e4f4445202025",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f020",
+   "source": "captures/big.txt",
+   "frame": "ff051001eb1d5101071c51031b871103dd86110001ef",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Air Temperature (°C)": {
+      "channel_id": "0x1D",
+      "value": 26.3,
+      "display_text": "26.3",
+      "layout": null
+     },
+     "Air Temperature (°F)": {
+      "channel_id": "0x1C",
+      "value": 79.5,
+      "display_text": "79.5",
+      "layout": null
+     },
+     "Barometric Pressure": {
+      "channel_id": "0x87",
+      "value": 989.0,
+      "display_text": "989",
+      "layout": null
+     },
+     "Barometric Pressure Trend": {
+      "channel_id": "0x86",
+      "value": 1.0,
+      "display_text": "1",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "environment.outside.temperature": 299.45,
+    "environment.outside.pressure": 98900.0,
+    "bandg.environment.pressureTrend": 1.0
+   }
+  },
+  {
+   "id": "f021",
+   "source": "captures/big.txt",
+   "frame": "ff620a019484070066014d8383bb02fe",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "Broadcast",
+    "values": {
+     "Tidal Set": {
+      "channel_id": "0x84",
+      "value": 333.0,
+      "display_text": "333°M",
+      "layout": "°M"
+     },
+     "Tidal Drift": {
+      "channel_id": "0x83",
+      "value": 0.02,
+      "display_text": "d0.02",
+      "layout": "d[data]"
+     }
+    }
+   },
+   "signalk": {
+    "environment.current.setMagnetic": 5.811946409141117,
+    "environment.current.drift": 0.01028888
+   }
+  },
+  {
+   "id": "f022",
+   "source": "captures/big.txt",
+   "frame": "ff051401e78d8105103b3101f03447007300009b4700a0000907",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 12.96,
+      "display_text": "12.96",
+      "layout": null
+     },
+     "Linear 4": {
+      "channel_id": "0x3B",
+      "value": 496.0,
+      "display_text": "496",
+      "layout": null
+     },
+     "Heel Angle": {
+      "channel_id": "0x34",
+      "value": 0.0,
+      "display_text": "0.0H",
+      "layout": "[data]H"
+     },
+     "Fore/Aft Trim": {
+      "channel_id": "0x9B",
+      "value": -0.9,
+      "display_text": "-0.9",
+      "layout": "-[data]"
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 12.96,
+    "bandg.unknown.0x3B": 496.0,
+    "navigation.attitude.roll": 0.0,
+    "navigation.attitude.pitch": -0.015707963267948967
+   }
+  },
+  {
+   "id": "f023",
+   "source": "captures/big.txt",
+   "frame": "ff010c01f3649100003621000d373100013e",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Average Speed (Knots)": {
+      "channel_id": "0x64",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Depth Sounder Receiver Gain": {
+      "channel_id": "0x36",
+      "value": 13.0,
+      "display_text": "13",
+      "layout": null
+     },
+     "Depth Sounder Noise": {
+      "channel_id": "0x37",
+      "value": 1.0,
+      "display_text": "1",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.speedThroughWaterAverage": 0.0
+   }
+  },
+  {
+   "id": "f024",
+   "source": "captures/big.txt",
+   "frame": "ff051401e78d81050f3b3101f0344700f300009b4700a0000a87",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 12.95,
+      "display_text": "12.95",
+      "layout": null
+     },
+     "Linear 4": {
+      "channel_id": "0x3B",
+      "value": 496.0,
+      "display_text": "496",
+      "layout": null
+     },
+     "Heel Angle": {
+      "channel_id": "0x34",
+      "value": 0.0,
+      "display_text": "H0.0",
+      "layout": "H[data]"
+     },
+     "Fore/Aft Trim": {
+      "channel_id": "0x9B",
+      "value": -1.0,
+      "display_text": "-1.0",
+      "layout": "-[data]"
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 12.95,
+    "bandg.unknown.0x3B": 496.0,
+    "navigation.attitude.roll": 0.0,
+    "navigation.attitude.pitch": -0.017453292519943295
+   }
+  },
+  {
+   "id": "f025",
+   "source": "captures/big.txt",
+   "frame": "ff62080196e90300aaeb53000329",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 62)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 170.0,
+      "display_text": "170",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.3,
+      "display_text": "0.3",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 2.9670597283903604,
+    "navigation.speedOverGround": 0.1543332
+   }
+  },
+  {
+   "id": "f026",
+   "source": "captures/big.txt",
+   "frame": "ff011c01e3c14700800064c24700800149c357008000378184ff000000d308cc5273",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Depth (Meters)": {
+      "channel_id": "0xC1",
+      "value": 10.0,
+      "display_text": "10.0",
+      "layout": null
+     },
+     "Depth (Feet)": {
+      "channel_id": "0xC2",
+      "value": 32.9,
+      "display_text": "32.9",
+      "layout": null
+     },
+     "Depth (Fathoms)": {
+      "channel_id": "0xC3",
+      "value": 5.5,
+      "display_text": "5.5",
+      "layout": null
+     },
+     "Dead Reckoning Distance": {
+      "channel_id": "0x81",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Dead Reckoning Course": {
+      "channel_id": "0xD3",
+      "value": 82.0,
+      "display_text": "82°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.deadReckoning.distance": 0.0,
+    "bandg.navigation.deadReckoning.course": 1.4311699866353502,
+    "environment.depth.belowTransducer": 10.0
+   }
+  },
+  {
+   "id": "f027",
+   "source": "captures/big.txt",
+   "frame": "ff051801e34e0a059505634d5100934f61004b520a041f041f5113200054",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Apparent Wind Speed (Raw)": {
+      "channel_id": "0x4E",
+      "value": 1429.0,
+      "display_text": "1429 / 1379",
+      "layout": null
+     },
+     "Apparent Wind Speed (Knots)": {
+      "channel_id": "0x4D",
+      "value": 14.7,
+      "display_text": "14.7",
+      "layout": null
+     },
+     "Apparent Wind Speed (m/s)": {
+      "channel_id": "0x4F",
+      "value": 7.5,
+      "display_text": "7.5",
+      "layout": null
+     },
+     "Apparent Wind Angle (Raw)": {
+      "channel_id": "0x52",
+      "value": 1055.0,
+      "display_text": "1055 / 1055",
+      "layout": null
+     },
+     "Apparent Wind Angle": {
+      "channel_id": "0x51",
+      "value": 0.0,
+      "display_text": "0-",
+      "layout": "[data]-"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.wind.rawSpeedApparent": 1429.0,
+    "environment.wind.speedApparent": 7.5,
+    "bandg.wind.rawAngleApparent": 1055.0,
+    "environment.wind.angleApparent": 0.0
+   }
+  },
+  {
+   "id": "f028",
+   "source": "captures/big.txt",
+   "frame": "ff051801e34e0a06f406d04d51009a4f61004f520a08970897511320067d",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Apparent Wind Speed (Raw)": {
+      "channel_id": "0x4E",
+      "value": 1780.0,
+      "display_text": "1780 / 1744",
+      "layout": null
+     },
+     "Apparent Wind Speed (Knots)": {
+      "channel_id": "0x4D",
+      "value": 15.4,
+      "display_text": "15.4",
+      "layout": null
+     },
+     "Apparent Wind Speed (m/s)": {
+      "channel_id": "0x4F",
+      "value": 7.9,
+      "display_text": "7.9",
+      "layout": null
+     },
+     "Apparent Wind Angle (Raw)": {
+      "channel_id": "0x52",
+      "value": 2199.0,
+      "display_text": "2199 / 2199",
+      "layout": null
+     },
+     "Apparent Wind Angle": {
+      "channel_id": "0x51",
+      "value": 6.0,
+      "display_text": "6-",
+      "layout": "[data]-"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.wind.rawSpeedApparent": 1780.0,
+    "environment.wind.speedApparent": 7.9,
+    "bandg.wind.rawAngleApparent": 2199.0,
+    "environment.wind.angleApparent": 0.10471975511965978
+   }
+  },
+  {
+   "id": "f029",
+   "source": "captures/big.txt",
+   "frame": "ff051401e78d8105463b3101e13447007300249b47002000c580",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 13.5,
+      "display_text": "13.50",
+      "layout": null
+     },
+     "Linear 4": {
+      "channel_id": "0x3B",
+      "value": 481.0,
+      "display_text": "481",
+      "layout": null
+     },
+     "Heel Angle": {
+      "channel_id": "0x34",
+      "value": 3.6,
+      "display_text": "3.6H",
+      "layout": "[data]H"
+     },
+     "Fore/Aft Trim": {
+      "channel_id": "0x9B",
+      "value": 19.7,
+      "display_text": "19.7-",
+      "layout": "[data]-"
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 13.5,
+    "bandg.unknown.0x3B": 481.0,
+    "navigation.attitude.roll": 0.06283185307179587,
+    "navigation.attitude.pitch": 0.3438298626428829
+   }
+  },
+  {
+   "id": "f030",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff011801e7cd840000acc7cf84ff0000001f17005c00171e17007400494f",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Stored Log (NM)": {
+      "channel_id": "0xCD",
+      "value": 442.31,
+      "display_text": "442.31",
+      "layout": null
+     },
+     "Trip Log (NM)": {
+      "channel_id": "0xCF",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Sea Temperature (°C)": {
+      "channel_id": "0x1F",
+      "value": 23.0,
+      "display_text": "23°C",
+      "layout": "[data]°C"
+     },
+     "Sea Temperature (°F)": {
+      "channel_id": "0x1E",
+      "value": 73.0,
+      "display_text": "73°F",
+      "layout": "[data]°F"
+     }
+    }
+   },
+   "signalk": {
+    "navigation.log": 819158.12,
+    "navigation.trip.log": 0.0,
+    "environment.water.temperature": 296.15
+   }
+  },
+  {
+   "id": "f031",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff051601e5555100a656610055590328767f8700bb00db6d08cc7061",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "True Wind Speed (Knots)": {
+      "channel_id": "0x55",
+      "value": 16.6,
+      "display_text": "16.6",
+      "layout": null
+     },
+     "True Wind Speed (m/s)": {
+      "channel_id": "0x56",
+      "value": 8.5,
+      "display_text": "8.5",
+      "layout": null
+     },
+     "True Wind Angle": {
+      "channel_id": "0x59",
+      "value": 118.0,
+      "display_text": "118=",
+      "layout": "[data]="
+     },
+     "Velocity Made Good (Knots)": {
+      "channel_id": "0x7F",
+      "value": 2.19,
+      "display_text": "d2.19",
+      "layout": "d[data]"
+     },
+     "True Wind Direction": {
+      "channel_id": "0x6D",
+      "value": 112.0,
+      "display_text": "112°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "environment.wind.speedTrue": 8.5,
+    "environment.wind.angleTrueWater": 2.059488517353309,
+    "performance.velocityMadeGood": 1.12663236,
+    "environment.wind.directionMagnetic": 1.9547687622336491
+   }
+  },
+  {
+   "id": "f032",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff010a01f54192f9dd420a01ec082cea",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Boatspeed (Knots)": {
+      "channel_id": "0x41",
+      "value": 4.77,
+      "display_text": "4.77",
+      "layout": null
+     },
+     "Boatspeed (Raw)": {
+      "channel_id": "0x42",
+      "value": 492.0,
+      "display_text": "492 / 2092",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.speedThroughWater": 2.45389788,
+    "bandg.navigation.rawSpeedThroughWater": 492.0
+   }
+  },
+  {
+   "id": "f033",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff120e01e00b038c024908cd634a0afbe13d492d",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Rudder Angle": {
+      "channel_id": "0x0B",
+      "value": -2.0,
+      "display_text": "-2",
+      "layout": "=[data]"
+     },
+     "Heading": {
+      "channel_id": "0x49",
+      "value": 355.0,
+      "display_text": "355°M",
+      "layout": "°M"
+     },
+     "Heading (Raw)": {
+      "channel_id": "0x4A",
+      "value": -1055.0,
+      "display_text": "-1055 / 15689",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.rudderAngle": -0.03490658503988659,
+    "navigation.headingMagnetic": 6.19591884457987,
+    "bandg.navigation.rawHeading": -1055.0
+   }
+  },
+  {
+   "id": "f034",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff051801e34e0a061c05fe4d51009c4f610050520a47f347f351032065a0",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Apparent Wind Speed (Raw)": {
+      "channel_id": "0x4E",
+      "value": 1564.0,
+      "display_text": "1564 / 1534",
+      "layout": null
+     },
+     "Apparent Wind Speed (Knots)": {
+      "channel_id": "0x4D",
+      "value": 15.6,
+      "display_text": "15.6",
+      "layout": null
+     },
+     "Apparent Wind Speed (m/s)": {
+      "channel_id": "0x4F",
+      "value": 8.0,
+      "display_text": "8.0",
+      "layout": null
+     },
+     "Apparent Wind Angle (Raw)": {
+      "channel_id": "0x52",
+      "value": 18419.0,
+      "display_text": "18419 / 18419",
+      "layout": null
+     },
+     "Apparent Wind Angle": {
+      "channel_id": "0x51",
+      "value": 101.0,
+      "display_text": "101-",
+      "layout": "[data]-"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.wind.rawSpeedApparent": 1564.0,
+    "environment.wind.speedApparent": 8.0,
+    "bandg.wind.rawAngleApparent": 18419.0,
+    "environment.wind.angleApparent": 1.7627825445142729
+   }
+  },
+  {
+   "id": "f035",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff600c0194e9310000ea11015beb6100360d",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": null
+     },
+     "Course Over Ground (Mag)": {
+      "channel_id": "0xEA",
+      "value": 347.0,
+      "display_text": "347",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 5.4,
+      "display_text": "5.4",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 0.0,
+    "navigation.courseOverGroundMagnetic": 6.056292504420323,
+    "navigation.speedOverGround": 2.7779976000000004
+   }
+  },
+  {
+   "id": "f036",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff051401e78d8105663b310000340600bee8e89b0600bee8e824",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 13.82,
+      "display_text": "13.82",
+      "layout": null
+     },
+     "Linear 4": {
+      "channel_id": "0x3B",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": null
+     },
+     "Heel Angle": {
+      "channel_id": "0x34",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     },
+     "Fore/Aft Trim": {
+      "channel_id": "0x9B",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 13.82,
+    "bandg.unknown.0x3B": 0.0,
+    "navigation.attitude.roll": null,
+    "navigation.attitude.pitch": null
+   }
+  },
+  {
+   "id": "f037",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff601503894750333335312e3639375331353131332e393839455e",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "LatLon",
+    "values": {
+     "LatLon": {
+      "channel_id": "0x47",
+      "value": null,
+      "display_text": "3351.697S15113.989E",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.position": {
+     "latitude": -33.86161666666667,
+     "longitude": 151.23315
+    }
+   }
+  },
+  {
+   "id": "f038",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff050601f5750501072c064c",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Timer": {
+      "channel_id": "0x75",
+      "value": 27846.0,
+      "display_text": "7:44:06",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.time.timer": 27846.0
+   }
+  },
+  {
+   "id": "f039",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff121601d846610037ba0600627200b406bee8e80006060062720066",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Speed Fixed (Knots)": {
+      "channel_id": "0x46",
+      "value": 5.5,
+      "display_text": "5.5",
+      "layout": null
+     },
+     "Unknown (0xBA)": {
+      "channel_id": "0xBA",
+      "value": null,
+      "display_text": " no ",
+      "layout": null
+     },
+     "Unknown (0xB4)": {
+      "channel_id": "0xB4",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0x06)": {
+      "channel_id": "0x06",
+      "value": null,
+      "display_text": " no ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.steering.autopilot.fixedSpeed": 2.8294420000000002
+   }
+  },
+  {
+   "id": "f040",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff051801e31d0600bee8e81c0600bee8e8870600bee8e8860600bee8e86a",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Air Temperature (°C)": {
+      "channel_id": "0x1D",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     },
+     "Air Temperature (°F)": {
+      "channel_id": "0x1C",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     },
+     "Barometric Pressure": {
+      "channel_id": "0x87",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     },
+     "Barometric Pressure Trend": {
+      "channel_id": "0x86",
+      "value": null,
+      "display_text": " OFF",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "environment.outside.temperature": null,
+    "environment.outside.pressure": null,
+    "bandg.environment.pressureTrend": null
+   }
+  },
+  {
+   "id": "f041",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "125002d1cbedaf64",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f042",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff600c0194e9310001ea11015deb6100360a",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 1.0,
+      "display_text": "1",
+      "layout": null
+     },
+     "Course Over Ground (Mag)": {
+      "channel_id": "0xEA",
+      "value": 349.0,
+      "display_text": "349",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 5.4,
+      "display_text": "5.4",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 0.017453292519943295,
+    "navigation.courseOverGroundMagnetic": 6.09119908946021,
+    "navigation.speedOverGround": 2.7779976000000004
+   }
+  },
+  {
+   "id": "f043",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff010a01f5419101db420a01d907d94c",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Boatspeed (Knots)": {
+      "channel_id": "0x41",
+      "value": 4.75,
+      "display_text": "4.75",
+      "layout": null
+     },
+     "Boatspeed (Raw)": {
+      "channel_id": "0x42",
+      "value": 473.0,
+      "display_text": "473 / 2009",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.speedThroughWater": 2.443609,
+    "bandg.navigation.rawSpeedThroughWater": 473.0
+   }
+  },
+  {
+   "id": "f044",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "125005d3c6eeb50100005c",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f045",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "501201fda0ee12",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f046",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff120a01e4b5015001a60700660000e6",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 20481.0,
+      "display_text": "Standby",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": 0.0,
+      "display_text": "0°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "standby",
+    "steering.autopilot.target.headingMagnetic": 0.0
+   }
+  },
+  {
+   "id": "f047",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff121a01d4b5015101a60700660162af0320005306bee8e8007606bee8e800bf",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 20737.0,
+      "display_text": "Compass",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": 354.0,
+      "display_text": "354°M",
+      "layout": "°M"
+     },
+     "Autopilot Off Course": {
+      "channel_id": "0xAF",
+      "value": 0.0,
+      "display_text": "0-",
+      "layout": "[data]-"
+     },
+     "Target TWA": {
+      "channel_id": "0x53",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0x76)": {
+      "channel_id": "0x76",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "auto",
+    "steering.autopilot.target.headingMagnetic": 6.178465552059927,
+    "bandg.steering.autopilot.offCourse": 0.0,
+    "performance.targetAngle": null
+   }
+  },
+  {
+   "id": "f048",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "125002dcc0f0a66a",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f049",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "125002cbd1f3a667",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f050",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff121a01d4b5015901a6070058015faf0361125306bee8e8007606bee8e80075",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 22785.0,
+      "display_text": "Compass",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": 351.0,
+      "display_text": "351L",
+      "layout": "[data]L"
+     },
+     "Autopilot Off Course": {
+      "channel_id": "0xAF",
+      "value": 18.0,
+      "display_text": "z18",
+      "layout": "z[data]"
+     },
+     "Target TWA": {
+      "channel_id": "0x53",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     },
+     "Unknown (0x76)": {
+      "channel_id": "0x76",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "auto",
+    "steering.autopilot.target.headingMagnetic": 6.126105674500097,
+    "bandg.steering.autopilot.offCourse": 0.3141592653589793,
+    "performance.targetAngle": null
+   }
+  },
+  {
+   "id": "f051",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "125005d4c5fca60100025b",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f052",
+   "source": "captures/big_with_ap_actions.txt",
+   "frame": "ff121801d6b5015104a6070066014baf033203531320807606bee8e8009f",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 20740.0,
+      "display_text": "Wind",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": 331.0,
+      "display_text": "331°M",
+      "layout": "°M"
+     },
+     "Autopilot Off Course": {
+      "channel_id": "0xAF",
+      "value": 3.0,
+      "display_text": "3z",
+      "layout": "[data]z"
+     },
+     "Target TWA": {
+      "channel_id": "0x53",
+      "value": 128.0,
+      "display_text": "128-",
+      "layout": "[data]-"
+     },
+     "Unknown (0x76)": {
+      "channel_id": "0x76",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "wind",
+    "steering.autopilot.target.headingMagnetic": 5.777039824101231,
+    "bandg.steering.autopilot.offCourse": 0.05235987755982989,
+    "performance.targetAngle": 2.234021442552742
+   }
+  },
+  {
+   "id": "f053",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "ff120e01e00b038c004908cd3d4a0ae1a5252fdd",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Rudder Angle": {
+      "channel_id": "0x0B",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": "=[data]"
+     },
+     "Heading": {
+      "channel_id": "0x49",
+      "value": 317.0,
+      "display_text": "317°M",
+      "layout": "°M"
+     },
+     "Heading (Raw)": {
+      "channel_id": "0x4A",
+      "value": -7771.0,
+      "display_text": "-7771 / 9519",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.rudderAngle": 0.0,
+    "navigation.headingMagnetic": 5.532693728822025,
+    "bandg.navigation.rawHeading": -7771.0
+   }
+  },
+  {
+   "id": "f054",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "ff051601e55551009d56610050591328577f87009900056d08cc2eb8",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "True Wind Speed (Knots)": {
+      "channel_id": "0x55",
+      "value": 15.7,
+      "display_text": "15.7",
+      "layout": null
+     },
+     "True Wind Speed (m/s)": {
+      "channel_id": "0x56",
+      "value": 8.0,
+      "display_text": "8.0",
+      "layout": null
+     },
+     "True Wind Angle": {
+      "channel_id": "0x59",
+      "value": 87.0,
+      "display_text": "87=",
+      "layout": "[data]="
+     },
+     "Velocity Made Good (Knots)": {
+      "channel_id": "0x7F",
+      "value": 0.05,
+      "display_text": "u0.05",
+      "layout": "u[data]"
+     },
+     "True Wind Direction": {
+      "channel_id": "0x6D",
+      "value": 46.0,
+      "display_text": "46°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "environment.wind.speedTrue": 8.0,
+    "environment.wind.angleTrueWater": 1.5184364492350666,
+    "performance.velocityMadeGood": 0.0257222,
+    "environment.wind.directionMagnetic": 0.8028514559173916
+   }
+  },
+  {
+   "id": "f055",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002d0ccb84602",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f056",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002d2cabcb490",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f057",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "501210d6b8bcb43100012c4a4f59535449434b202082",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f058",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002debebd76cd",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f059",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "5012072176bd762403000004a2",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f060",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002dfbdbeaf93",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f061",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "5012072077beaf240300000f5d",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f062",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002cfcdc2af8f",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f063",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "125002cdcfc349f4",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f064",
+   "source": "captures/example1_fastnet_data.txt",
+   "frame": "501205cecbc349310001c2",
+   "decode": null,
+   "signalk": null
+  },
+  {
+   "id": "f065",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff011c01e3c1570080000fc25700800032c357008000088184ff000000d308cc2918",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Depth (Meters)": {
+      "channel_id": "0xC1",
+      "value": 1.5,
+      "display_text": "1.5",
+      "layout": null
+     },
+     "Depth (Feet)": {
+      "channel_id": "0xC2",
+      "value": 5.0,
+      "display_text": "5.0",
+      "layout": null
+     },
+     "Depth (Fathoms)": {
+      "channel_id": "0xC3",
+      "value": 0.8,
+      "display_text": "0.8",
+      "layout": null
+     },
+     "Dead Reckoning Distance": {
+      "channel_id": "0x81",
+      "value": 0.0,
+      "display_text": "0.00",
+      "layout": null
+     },
+     "Dead Reckoning Course": {
+      "channel_id": "0xD3",
+      "value": 41.0,
+      "display_text": "41°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.navigation.deadReckoning.distance": 0.0,
+    "bandg.navigation.deadReckoning.course": 0.7155849933176751,
+    "environment.depth.belowTransducer": 1.5
+   }
+  },
+  {
+   "id": "f066",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff600c0194e921000dea310000eb61000280",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 13.0,
+      "display_text": "13",
+      "layout": null
+     },
+     "Course Over Ground (Mag)": {
+      "channel_id": "0xEA",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.2,
+      "display_text": "0.2",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 0.22689280275926285,
+    "navigation.courseOverGroundMagnetic": 0.0,
+    "navigation.speedOverGround": 0.1028888
+   }
+  },
+  {
+   "id": "f067",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff600c0194e9210036ea210029eb6100013f",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 54.0,
+      "display_text": "54",
+      "layout": null
+     },
+     "Course Over Ground (Mag)": {
+      "channel_id": "0xEA",
+      "value": 41.0,
+      "display_text": "41",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.1,
+      "display_text": "0.1",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 0.9424777960769379,
+    "navigation.courseOverGroundMagnetic": 0.7155849933176751,
+    "navigation.speedOverGround": 0.0514444
+   }
+  },
+  {
+   "id": "f068",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff600c0194e911014eea310009eb61000047",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "External Compass (NMEA FFD 60)",
+    "command": "Broadcast",
+    "values": {
+     "Course Over Ground (True)": {
+      "channel_id": "0xE9",
+      "value": 334.0,
+      "display_text": "334",
+      "layout": null
+     },
+     "Course Over Ground (Mag)": {
+      "channel_id": "0xEA",
+      "value": 9.0,
+      "display_text": "9",
+      "layout": null
+     },
+     "Speed Over Ground": {
+      "channel_id": "0xEB",
+      "value": 0.0,
+      "display_text": "0.0",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "navigation.courseOverGroundTrue": 5.82939970166106,
+    "navigation.courseOverGroundMagnetic": 0.15707963267948966,
+    "navigation.speedOverGround": 0.0
+   }
+  },
+  {
+   "id": "f069",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff051801e34e0a025b02074d6100414f610021520a052d052d5113a000be",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Apparent Wind Speed (Raw)": {
+      "channel_id": "0x4E",
+      "value": 603.0,
+      "display_text": "603 / 519",
+      "layout": null
+     },
+     "Apparent Wind Speed (Knots)": {
+      "channel_id": "0x4D",
+      "value": 6.5,
+      "display_text": "6.5",
+      "layout": null
+     },
+     "Apparent Wind Speed (m/s)": {
+      "channel_id": "0x4F",
+      "value": 3.3,
+      "display_text": "3.3",
+      "layout": null
+     },
+     "Apparent Wind Angle (Raw)": {
+      "channel_id": "0x52",
+      "value": 1325.0,
+      "display_text": "1325 / 1325",
+      "layout": null
+     },
+     "Apparent Wind Angle": {
+      "channel_id": "0x51",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": "-[data]"
+     }
+    }
+   },
+   "signalk": {
+    "bandg.wind.rawSpeedApparent": 603.0,
+    "environment.wind.speedApparent": 3.3,
+    "bandg.wind.rawAngleApparent": 1325.0,
+    "environment.wind.angleApparent": 0.0
+   }
+  },
+  {
+   "id": "f070",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff051601e555610046566100245913a8007f87009900006d08cc3203",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "True Wind Speed (Knots)": {
+      "channel_id": "0x55",
+      "value": 7.0,
+      "display_text": "7.0",
+      "layout": null
+     },
+     "True Wind Speed (m/s)": {
+      "channel_id": "0x56",
+      "value": 3.6,
+      "display_text": "3.6",
+      "layout": null
+     },
+     "True Wind Angle": {
+      "channel_id": "0x59",
+      "value": 0.0,
+      "display_text": "0",
+      "layout": "=[data]"
+     },
+     "Velocity Made Good (Knots)": {
+      "channel_id": "0x7F",
+      "value": 0.0,
+      "display_text": "u0.00",
+      "layout": "u[data]"
+     },
+     "True Wind Direction": {
+      "channel_id": "0x6D",
+      "value": 50.0,
+      "display_text": "50°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "environment.wind.speedTrue": 3.6,
+    "environment.wind.angleTrueWater": 0.0,
+    "performance.velocityMadeGood": 0.0,
+    "environment.wind.directionMagnetic": 0.8726646259971648
+   }
+  },
+  {
+   "id": "f071",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff121801d6b5015104a60700660033af0361345313a0057606bee8e80053",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Halcyon Gyro-Stabilised Compass (via Pilot ACP)",
+    "command": "Broadcast",
+    "values": {
+     "Autopilot Mode": {
+      "channel_id": "0xB5",
+      "value": 20740.0,
+      "display_text": "Wind",
+      "layout": null
+     },
+     "Autopilot Compass Target": {
+      "channel_id": "0xA6",
+      "value": 51.0,
+      "display_text": "51°M",
+      "layout": "°M"
+     },
+     "Autopilot Off Course": {
+      "channel_id": "0xAF",
+      "value": 52.0,
+      "display_text": "z52",
+      "layout": "z[data]"
+     },
+     "Target TWA": {
+      "channel_id": "0x53",
+      "value": -5.0,
+      "display_text": "-5",
+      "layout": "-[data]"
+     },
+     "Unknown (0x76)": {
+      "channel_id": "0x76",
+      "value": null,
+      "display_text": "OFF ",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "steering.autopilot.state": "wind",
+    "steering.autopilot.target.headingMagnetic": 0.8901179185171081,
+    "bandg.steering.autopilot.offCourse": 0.9075712110370514,
+    "performance.targetAngle": -0.08726646259971647
+   }
+  },
+  {
+   "id": "f072",
+   "source": "captures/example2_fastnet_data.txt",
+   "frame": "ff051601e55561004656610024591328007f87009900006d08cc3a7b",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Wind Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "True Wind Speed (Knots)": {
+      "channel_id": "0x55",
+      "value": 7.0,
+      "display_text": "7.0",
+      "layout": null
+     },
+     "True Wind Speed (m/s)": {
+      "channel_id": "0x56",
+      "value": 3.6,
+      "display_text": "3.6",
+      "layout": null
+     },
+     "True Wind Angle": {
+      "channel_id": "0x59",
+      "value": 0.0,
+      "display_text": "0=",
+      "layout": "[data]="
+     },
+     "Velocity Made Good (Knots)": {
+      "channel_id": "0x7F",
+      "value": 0.0,
+      "display_text": "u0.00",
+      "layout": "u[data]"
+     },
+     "True Wind Direction": {
+      "channel_id": "0x6D",
+      "value": 58.0,
+      "display_text": "58°M",
+      "layout": "°M"
+     }
+    }
+   },
+   "signalk": {
+    "environment.wind.speedTrue": 3.6,
+    "environment.wind.angleTrueWater": 0.0,
+    "performance.velocityMadeGood": 0.0,
+    "environment.wind.directionMagnetic": 1.0122909661567112
+   }
+  },
+  {
+   "id": "f073",
+   "source": "synthetic",
+   "note": "A record in format 0x00 (size known, layout unknown) decodes to null and is skipped by the projection; the rest of the frame still decodes.",
+   "frame": "ff010a01f54100010203048d8105267c",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Normal CPU (Depth Board in H2000)",
+    "command": "Broadcast",
+    "values": {
+     "Boatspeed (Knots)": null,
+     "Battery Volts": {
+      "channel_id": "0x8D",
+      "value": 13.18,
+      "display_text": "13.18",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "electrical.batteries.house.voltage": 13.18
+   }
+  },
+  {
+   "id": "f074",
+   "source": "synthetic",
+   "note": "A channel id and an address the schema has no name for: placeholder names, and the value is emitted under bandg.unknown.0x<id>.",
+   "frame": "ff000401fc0101012cd1",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Unknown (0x00)",
+    "command": "Broadcast",
+    "values": {
+     "Unknown (0x01)": {
+      "channel_id": "0x01",
+      "value": 300.0,
+      "display_text": "300",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {
+    "bandg.unknown.0x01": 300.0
+   }
+  },
+  {
+   "id": "f075",
+   "source": "synthetic",
+   "note": "Light Intensity (backlight), captured live but not present in captures/: decoded, but it has no Signal K path, so the projection is empty.",
+   "frame": "ff5001c9e701ff",
+   "decode": {
+    "to_address": "Entire System",
+    "from_address": "Pilot FFD (50)",
+    "command": "Light Intensity",
+    "values": {
+     "Backlight": {
+      "channel_id": null,
+      "value": 1.0,
+      "display_text": "Low",
+      "layout": null
+     }
+    }
+   },
+   "signalk": {}
+  }
+ ]
+}

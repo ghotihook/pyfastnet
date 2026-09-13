@@ -1,12 +1,10 @@
-"""Regenerate the v2 golden baseline: a compact, deterministic snapshot of the current
-(pre-v3) decode of every bundled capture.
+"""Regenerate the golden baseline: a compact, deterministic snapshot of the complete
+decode of every capture in captures/.
 
 Two parts:
   * per-file ``decode_sha256`` over the full ordered frame decode — detects ANY change
-    to the complete decoder through the v3 refactor (the decoder stays complete; its
-    value/display_text/layout output must not drift).
-  * per-channel ``distinct`` decode outcomes (value, display_text, layout + count) —
-    the reference the v3 projection ({signalk_path: SI_value}) must derive from.
+    to the complete decoder's value/display_text/layout output.
+  * per-channel ``distinct`` decode outcomes (value, display_text, layout + count).
 
 Run from the repo root:  python tests/golden/generate_baseline.py
 """
@@ -21,7 +19,7 @@ logging.getLogger("pyfastnet").setLevel(logging.CRITICAL)
 from fastnet_decoder import __version__, FrameBuffer
 
 REPO = Path(__file__).resolve().parents[2]
-CAPTURES = sorted((REPO / "temp").glob("*.txt"))
+CAPTURES = sorted((REPO / "captures").glob("*.txt"))
 OUT = Path(__file__).resolve().parent / "v2_baseline.json"
 
 

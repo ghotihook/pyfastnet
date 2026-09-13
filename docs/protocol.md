@@ -11,6 +11,11 @@ and its own [README](../fastnet_decoder/data/README.md). This document
 explains the *shape* of the protocol; that file has the *data*. The Python
 reference implementation is [`fastnet_decoder/interpreter.py`](../fastnet_decoder/interpreter.py).
 
+Writing a decoder? [`porting.md`](porting.md) is the step-by-step contract for an
+engine that reads `fastnet.json`, and [`conformance/`](../conformance/README.md) has
+the expected output to test it against. The recorded traffic everything here was
+verified against is in [`captures/`](../captures/README.md).
+
 Historical sources this protocol was originally reverse-engineered from:
 [Oppedijk's B&G FastNet page](https://www.oppedijk.com/bandg/fastnet.html)
 and [timmathews' C++ driver](https://github.com/timmathews/bg-fastnet-driver).
@@ -225,6 +230,11 @@ field: source marker  (format byte,      ASCII position-fix text
   direction letter. No delimiter separates the latitude and longitude
   fields other than the direction letters themselves.
   Example: `3352.450S15113.920E` → 33°52.450′S, 151°13.920′E.
+- A second form has been captured, from a different source: minutes to
+  **two** decimal places, with a space before each direction letter.
+  Example: `1646.61 S17920.23 E` → 16°46.61′S, 179°20.23′E. It is 62 of
+  the 312 LatLon frames in the recorded captures, so a parser must accept
+  both — ignore whitespace around each number.
 
 ## Light Intensity frames (command `0xC9`) — backlight level
 

@@ -10,6 +10,10 @@ a wrong Signal K mapping: edit this file directly, then run the test suite.**
 You do not need to touch any Python code unless the new discovery needs a
 genuinely new byte layout (see "formatTemplates" below) — that's rare.
 
+This page is for people *editing* the schema. If you're writing a decoder
+that *reads* it — in any language — the exact meaning of every field is in
+[`docs/porting.md`](../../docs/porting.md).
+
 ## Top-level sections
 
 ```
@@ -45,9 +49,10 @@ keep decoding the rest of the frame).
 
 The heart of the schema: one entry per format nibble, describing exactly
 how to turn its data bytes into a value. Every template has an `"op"` field
-naming which decoding recipe to use — see the big comment block above
-`decode_channel_value()` in `interpreter.py` for what each `op` does, with
-a worked example. The current op vocabulary (`scaledInt`, `scaledBitfield`,
+naming which decoding recipe to use — [`docs/porting.md` § "The eight
+ops"](../../docs/porting.md#the-eight-ops) defines what each `op` does, and
+`decode_channel_value()` in `interpreter.py` is the reference implementation,
+with a worked example. The current op vocabulary (`scaledInt`, `scaledBitfield`,
 `signedLayoutValue`, `layoutValue`, `durationHMS`, `segmentDisplay`,
 `pairedScaledInt`, `unsupported`) covers every format nibble seen in
 captured data so far. **You should essentially never need to add a new
@@ -154,3 +159,21 @@ place alongside everything else.
 JSON has no native comment syntax. Any `"_comment"` key you see is a plain
 documentation string, ignored by `interpreter.py` — add one wherever a
 value needs explaining, the same way you'd add a code comment.
+
+## After an edit
+
+Run the test suite (`python -m pytest tests/`). Beyond the channel tests, three
+checks are designed to fail after a schema edit, and each says how to fix it:
+
+- `test_schema_valid.py` — the edit isn't well-formed (a missing field, a byte
+  index past the end of its record, an unknown `op`). Fix the edit.
+  `python tools/validate_schema.py` runs the same checks directly.
+- `test_channel_map.py` — `docs/channel_map.md` no longer matches. Regenerate it:
+  `python docs/generate_channel_map.py`.
+- `test_conformance.py` — `conformance/vectors.json` was generated from the
+  previous schema. If the output change is the one you meant, regenerate:
+  `python conformance/generate_vectors.py`. Other-language implementations test
+  against that file, so say in the commit what changed and why.
+
+To find what's still unidentified in the recorded traffic — the segment codes and
+glyphs that decode as `"TBC"` — run `python tools/find_unknown_codes.py`.

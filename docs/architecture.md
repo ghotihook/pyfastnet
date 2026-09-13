@@ -110,5 +110,15 @@ public API is unchanged.
   `tools/coverage.py` doing exactly that is proposed and deferred.
 - **A real end-to-end schema fix.** Take a genuine sign or layout bug and fix it through
   the schema, to test the claim that the common change is still comfortable. Not blocking.
-- **Second-language reader.** A small Rust or JS decoder reading `fastnet.json`, to turn
-  "should be portable" into "is portable". Interesting, not a gate.
+- **Second-language reader.** The engine's contract is written down in
+  [`porting.md`](porting.md), with language-neutral expected output in
+  [`conformance/`](../conformance/README.md). When those were written, a throwaway
+  JavaScript engine built from `porting.md` alone reproduced every vector — after two
+  corrections it forced on the guide: the sign must be applied in integer arithmetic (so
+  there is no −0), and position text comes in two forms. A second implementation kept in
+  this repository — to make "is portable" something the test suite re-proves on every
+  change — is still open. Interesting, not a gate.
+- **Engine-held facts.** A few protocol facts still live in `interpreter.py` rather than
+  the schema: the autopilot state bytes, Magnetic as the default route, the placeholder
+  strings. [`porting.md` §9](porting.md#9-facts-the-engine-holds) lists them all. Each is
+  a candidate to move into the schema.

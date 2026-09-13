@@ -2,9 +2,9 @@
 
 **Generated** from `fastnet_decoder.channel_map()` (pyfastnet 3.2.0). Do not hand-edit — regenerate with `python docs/generate_channel_map.py`.
 
-This is the authoritative map, derived from the projection tables so it stays in step with what `project()` actually emits. `kind`: *standard* = SK path, *vendor* = `bandg.*`, *routed(M/T)* = Magnetic|True chosen from layout, *collapsed* = redundant variant folded onto a sibling, *drop* = not emitted.
+This is the authoritative map, derived from the schema so it stays in step with what `project()` actually emits. `kind`: *standard* = SK path, *vendor* = `bandg.*`, *routed(M/T)* = Magnetic|True chosen from layout, *collapsed* = redundant variant folded onto a sibling, *drop* = not emitted, *unknown* = decoded but not yet mapped.
 
-> Position (`navigation.position`) and backlight come from command frames (LatLon / Light Intensity), not channel ids, so they are not in this table.
+> Position (`navigation.position`) comes from LatLon command frames, not a channel id, so it is not in this table. Backlight (Light Intensity frames) is decoded but has no Signal K path.
 
 | ID | B&G name | Signal K path | Unit | Kind |
 |----|----------|---------------|------|------|

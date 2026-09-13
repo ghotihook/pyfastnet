@@ -1,9 +1,7 @@
-"""Regression guard: the complete decoder must match the committed v2 golden baseline.
+"""Regression guard: the complete decoder must match the committed golden baseline.
 
 Recomputes each capture's decode hash and compares to tests/golden/v2_baseline.json,
-catching any unintended change to value/display_text/layout during the pre-v3 fixes.
-See tests/golden/README.md. At the v3 cut-over, repoint this at the retained
-complete-decode path.
+catching any unintended change to value/display_text/layout. See tests/golden/README.md.
 """
 import hashlib
 import importlib.util

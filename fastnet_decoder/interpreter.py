@@ -982,6 +982,10 @@ def project(decoded_frame: dict, battery_id: str = "house") -> dict:
     depth_path = None
 
     for entry in decoded_values.values():
+        if entry is None:
+            # decode_frame() records a channel as None when its format has no
+            # known byte layout (e.g. nibble 0x00) - there is nothing to project.
+            continue
         channel_id = _channel_id_from_entry(entry)
         if channel_id is None:
             continue

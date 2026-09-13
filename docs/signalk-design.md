@@ -115,8 +115,11 @@ debug only). `value` mirrors Signal K's own value model:
 | Kind | Type | Notes |
 |------|------|-------|
 | Measurement | `float` | SI unit per the path; `None` = data unavailable |
-| Enumerated state | `str` | the SK enum string (e.g. AP state `"auto"`, backlight `"Low"`) |
+| Enumerated state | `str` | the SK enum string (e.g. AP state `"auto"`) |
 | Position | `object` | `{"latitude": <deg>, "longitude": <deg>}`, decimal degrees, −ve for S/W |
+
+Backlight level (Light Intensity frames) has no Signal K path and is not emitted. It is
+available in the complete decode, `FrameBuffer(project=False)`, as a `Backlight` entry.
 
 ## Open items — TBC
 

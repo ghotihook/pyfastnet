@@ -29,7 +29,7 @@
   "formatTemplates": {
     "0x00": {
       "op": "unsupported",
-      "_comment": "sized (4B) but no decode branch exists in decode_format_and_data"
+      "_comment": "size known (4 bytes) but byte layout unknown - a record in this format decodes to null"
     },
     "0x01": {
       "op": "scaledInt",

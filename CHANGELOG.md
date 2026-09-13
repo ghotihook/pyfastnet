@@ -7,6 +7,52 @@ major bump.
 This file was reconstructed from git history in 3.2.0; entries before that were written
 after the fact from the tagged releases.
 
+A change that requires other-language implementations of the engine to change as well is
+marked **Engine change** — see [`docs/porting.md`](docs/porting.md).
+
+## [Unreleased]
+
+### Fixed
+- A Broadcast frame containing a record in a format with no known byte layout (format
+  nibble `0x00`, for example) made `project()` — and so `FrameBuffer.get_complete_frames()`
+  — raise `AttributeError`, stopping the caller's read loop. The projection now skips such
+  a record and emits the rest of the frame. No bundled capture contains one; a synthetic
+  frame tests it.
+- Documentation said Backlight (Light Intensity) is emitted as a Signal K value. It isn't:
+  it has no Signal K path and appears only in the complete decode.
+- `docs/protocol.md` described one LatLon position-text form; the captures contain two. The
+  second — minutes to two decimal places, a space before each direction letter
+  (`1646.61 S17920.23 E`) — is 62 of the 312 position frames. The decoder already handled
+  it; a parser written from the old description would not have.
+
+### Added
+- [`docs/porting.md`](docs/porting.md) — the engine's contract for implementing FastNet in
+  another language: everything an engine must do with `fastnet.json`, in build order,
+  including the few facts the schema doesn't yet hold.
+- [`conformance/`](conformance/README.md) — language-neutral expected output: the frame
+  sequence of every capture, and 75 frames with their expected decode and Signal K
+  projection, chosen to cover every behaviour in the captures. `tests/test_conformance.py`
+  keeps it in step with the library.
+- [`examples/`](examples/) — `replay_capture.py` (replay a recording and print the latest
+  value of every path) and `inspect_frame.py` (both views of a single frame).
+- `tools/find_unknown_codes.py` — lists the segment codes, glyphs and formats in the
+  captures that the schema can't identify yet. It replaces the root-level
+  `analyze_unknown_layouts.py`, which imported modules deleted in 3.2.0 and no longer ran.
+- `tests/test_examples.py` runs every script in `examples/` and `tools/`, so none can
+  silently stop working again.
+- [`captures/README.md`](captures/README.md) — the capture format, and what each recording
+  shows.
+
+### Changed
+- `temp/` is renamed [`captures/`](captures/): it holds the evidence every test is built
+  on, not temporary files.
+- README links are absolute, so they work on PyPI as well as GitHub. New sections cover
+  building a tool on the library, the protocol-as-data model, and porting.
+
+### Removed
+- `tools/extract_schema.py` — the one-off script that produced `fastnet.json` during the
+  3.2.0 migration. It depended on the deleted modules.
+
 ## [3.2.0] — 2026-09-06
 
 The protocol is now stored as data rather than code. **No change to output or API** — every
