@@ -19,11 +19,21 @@ in any language. See [How it works](#how-it-works-the-protocol-is-data).
 Developed for personal use and published for general interest. Runs on Raspberry
 Pi, macOS, or Linux.
 
-## Quick start
+## Install
 
 ```bash
-pip install pyfastnet
+pip install pyfastnet              # first install
+pip install --upgrade pyfastnet    # upgrade to the latest release
+pip show pyfastnet                 # which version you have
 ```
+
+On a machine that already has pyfastnet, plain `pip install pyfastnet` changes nothing —
+pip reports "Requirement already satisfied", however old the installed version is. Use
+`--upgrade`. Upgrading from 2.x changes the output format; see the note above.
+
+Requires Python 3.7 or newer. pyfastnet has no dependencies of its own.
+
+## Quick start
 
 ```python
 #!/usr/bin/env python3
@@ -57,8 +67,8 @@ finally:
 ```
 
 Serial settings for a B&G Fastnet bus are **28,800 baud, 8 data bits, odd parity,
-2 stop bits**. (`serial` is [pyserial](https://pypi.org/project/pyserial/); pyfastnet
-itself has no dependencies.)
+2 stop bits**. This example also needs [pyserial](https://pypi.org/project/pyserial/):
+`pip install pyserial`.
 
 ## Try it without a boat
 

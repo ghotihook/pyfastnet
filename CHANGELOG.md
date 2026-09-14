@@ -10,6 +10,13 @@ after the fact from the tagged releases.
 A change that requires other-language implementations of the engine to change as well is
 marked **Engine change** — see [`docs/porting.md`](docs/porting.md).
 
+## [Unreleased]
+
+### Changed
+- README: an Install section with the upgrade command (`pip install --upgrade pyfastnet`),
+  how to check the installed version, and the Python requirement. Plain `pip install`
+  leaves an old version in place, which the README didn't say.
+
 ## [3.2.1] — 2026-09-14
 
 3.2.0 was tagged but never published to PyPI, so this is the first PyPI release with the
